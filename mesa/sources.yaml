@@ -1,0 +1,4 @@
+name: mesa
+remote: https://gitlab.freedesktop.org/mesa/mesa.git
+tag: mesa-25.2.8
+revision: f97d7dcca0e51d7e20ed4342bb5ea8afea7db7fa

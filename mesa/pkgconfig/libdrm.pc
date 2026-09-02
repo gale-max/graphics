@@ -1,0 +1,10 @@
+prefix=D:/workspace/luna-workspace/os/graphics
+libdir=${prefix}/libdrm/build/libdrm/armv8a-user
+includedir=${prefix}/libdrm/upstream
+
+Name: libdrm
+Description: Luna userspace DRM ABI library
+Version: 2.4.113
+Libs: -L${libdir} -ldrm
+Cflags: -I${includedir} -I${includedir}/include -I${includedir}/include/drm
+

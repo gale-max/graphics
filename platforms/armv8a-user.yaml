@@ -1,0 +1,22 @@
+armv8a-user:
+  toolchain:
+    c-compiler:
+      source_type: c
+      path: D:/workspace/luna-workspace/tools/toolchains/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-gcc.exe
+      flags: >-
+        -Os -march=armv8-a -mtune=cortex-a53 -g -std=gnu11 -Wall -Wextra
+        -ffunction-sections -fdata-sections -fPIC -fno-stack-protector
+    cpp-compiler:
+      source_type: cpp
+      path: D:/workspace/luna-workspace/tools/toolchains/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-g++.exe
+      flags: >-
+        -Os -march=armv8-a -mtune=cortex-a53 -g -std=gnu++17 -Wall -Wextra
+        -ffunction-sections -fdata-sections -fPIC -fno-stack-protector
+    linker:
+      tool_type: linker
+      path: D:/workspace/luna-workspace/tools/toolchains/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-g++.exe
+    archiver:
+      tool_type: archiver
+      path: D:/workspace/luna-workspace/tools/toolchains/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-ar.exe
+      flags: qc
+

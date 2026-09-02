@@ -1,0 +1,199 @@
+project: luna-glmark2
+
+platforms:
+  $include: ../platforms/armv8a-user.yaml
+
+targets:
+  glmark2-zlib:
+    build:
+      type: static_linked_library
+      artifact: libglmark2-zlib.a
+      sources:
+        c:
+          - upstream/src/zlib/adler32.c
+          - upstream/src/zlib/compress.c
+          - upstream/src/zlib/crc32.c
+          - upstream/src/zlib/deflate.c
+          - upstream/src/zlib/infback.c
+          - upstream/src/zlib/inffast.c
+          - upstream/src/zlib/inflate.c
+          - upstream/src/zlib/inftrees.c
+          - upstream/src/zlib/trees.c
+          - upstream/src/zlib/uncompr.c
+          - upstream/src/zlib/zutil.c
+      includes: [upstream/src/zlib]
+
+  glmark2-png:
+    build:
+      type: static_linked_library
+      artifact: libglmark2-png.a
+      depends_on: [glmark2-zlib]
+      sources:
+        c: [upstream/src/libpng/*.c]
+      includes: [upstream/src/libpng, upstream/src/zlib]
+
+  glmark2-jpeg:
+    build:
+      type: static_linked_library
+      artifact: libglmark2-jpeg.a
+      sources:
+        c:
+          - upstream/src/libjpeg-turbo/jcapimin.c
+          - upstream/src/libjpeg-turbo/jcapistd.c
+          - upstream/src/libjpeg-turbo/jccoefct.c
+          - upstream/src/libjpeg-turbo/jccolor.c
+          - upstream/src/libjpeg-turbo/jcdctmgr.c
+          - upstream/src/libjpeg-turbo/jchuff.c
+          - upstream/src/libjpeg-turbo/jcinit.c
+          - upstream/src/libjpeg-turbo/jcmainct.c
+          - upstream/src/libjpeg-turbo/jcmarker.c
+          - upstream/src/libjpeg-turbo/jcmaster.c
+          - upstream/src/libjpeg-turbo/jcomapi.c
+          - upstream/src/libjpeg-turbo/jcparam.c
+          - upstream/src/libjpeg-turbo/jcphuff.c
+          - upstream/src/libjpeg-turbo/jcprepct.c
+          - upstream/src/libjpeg-turbo/jcsample.c
+          - upstream/src/libjpeg-turbo/jdapimin.c
+          - upstream/src/libjpeg-turbo/jdapistd.c
+          - upstream/src/libjpeg-turbo/jdatadst.c
+          - upstream/src/libjpeg-turbo/jdatasrc.c
+          - upstream/src/libjpeg-turbo/jdcoefct.c
+          - upstream/src/libjpeg-turbo/jdcolor.c
+          - upstream/src/libjpeg-turbo/jddctmgr.c
+          - upstream/src/libjpeg-turbo/jdhuff.c
+          - upstream/src/libjpeg-turbo/jdinput.c
+          - upstream/src/libjpeg-turbo/jdmainct.c
+          - upstream/src/libjpeg-turbo/jdmarker.c
+          - upstream/src/libjpeg-turbo/jdmaster.c
+          - upstream/src/libjpeg-turbo/jdmerge.c
+          - upstream/src/libjpeg-turbo/jdphuff.c
+          - upstream/src/libjpeg-turbo/jdpostct.c
+          - upstream/src/libjpeg-turbo/jdsample.c
+          - upstream/src/libjpeg-turbo/jerror.c
+          - upstream/src/libjpeg-turbo/jfdctflt.c
+          - upstream/src/libjpeg-turbo/jfdctfst.c
+          - upstream/src/libjpeg-turbo/jfdctint.c
+          - upstream/src/libjpeg-turbo/jidctflt.c
+          - upstream/src/libjpeg-turbo/jidctfst.c
+          - upstream/src/libjpeg-turbo/jidctint.c
+          - upstream/src/libjpeg-turbo/jidctred.c
+          - upstream/src/libjpeg-turbo/jmemmgr.c
+          - upstream/src/libjpeg-turbo/jmemnobs.c
+          - upstream/src/libjpeg-turbo/jquant1.c
+          - upstream/src/libjpeg-turbo/jquant2.c
+          - upstream/src/libjpeg-turbo/jsimd_none.c
+          - upstream/src/libjpeg-turbo/jutils.c
+      includes: [upstream/src/libjpeg-turbo]
+
+  glmark2-drm:
+    build:
+      type: executable
+      artifact: glmark2-drm.elf
+      depends_on: [glmark2-zlib, glmark2-png, glmark2-jpeg]
+      sources:
+        cpp:
+          - upstream/src/benchmark-collection.cpp
+          - upstream/src/benchmark.cpp
+          - upstream/src/canvas-generic.cpp
+          - upstream/src/gl-headers.cpp
+          - upstream/src/gl-state-egl.cpp
+          - upstream/src/gl-visual-config.cpp
+          - upstream/src/image-reader.cpp
+          - upstream/src/libmatrix/log.cc
+          - upstream/src/libmatrix/mat.cc
+          - upstream/src/libmatrix/program.cc
+          - upstream/src/libmatrix/shader-source.cc
+          - upstream/src/libmatrix/util.cc
+          - upstream/src/main-loop.cpp
+          - upstream/src/main.cpp
+          - upstream/src/mesh.cpp
+          - upstream/src/model.cpp
+          - upstream/src/native-state-drm.cpp
+          - upstream/src/options.cpp
+          - upstream/src/results-file.cpp
+          - upstream/src/scene-buffer.cpp
+          - upstream/src/scene-build.cpp
+          - upstream/src/scene-bump.cpp
+          - upstream/src/scene-clear.cpp
+          - upstream/src/scene-conditionals.cpp
+          - upstream/src/scene.cpp
+          - upstream/src/scene-default-options.cpp
+          - upstream/src/scene-desktop.cpp
+          - upstream/src/scene-effect-2d.cpp
+          - upstream/src/scene-function.cpp
+          - upstream/src/scene-grid.cpp
+          - upstream/src/scene-ideas/a.cc
+          - upstream/src/scene-ideas.cpp
+          - upstream/src/scene-ideas/d.cc
+          - upstream/src/scene-ideas/e.cc
+          - upstream/src/scene-ideas/i.cc
+          - upstream/src/scene-ideas/lamp.cc
+          - upstream/src/scene-ideas/logo.cc
+          - upstream/src/scene-ideas/m.cc
+          - upstream/src/scene-ideas/n.cc
+          - upstream/src/scene-ideas/o.cc
+          - upstream/src/scene-ideas/s.cc
+          - upstream/src/scene-ideas/splines.cc
+          - upstream/src/scene-ideas/table.cc
+          - upstream/src/scene-ideas/t.cc
+          - upstream/src/scene-jellyfish.cpp
+          - upstream/src/scene-loop.cpp
+          - upstream/src/scene-pulsar.cpp
+          - upstream/src/scene-refract.cpp
+          - upstream/src/scene-shading.cpp
+          - upstream/src/scene-shadow.cpp
+          - upstream/src/scene-terrain/base-renderer.cpp
+          - upstream/src/scene-terrain/blur-renderer.cpp
+          - upstream/src/scene-terrain/copy-renderer.cpp
+          - upstream/src/scene-terrain.cpp
+          - upstream/src/scene-terrain/luminance-renderer.cpp
+          - upstream/src/scene-terrain/normal-from-height-renderer.cpp
+          - upstream/src/scene-terrain/overlay-renderer.cpp
+          - upstream/src/scene-terrain/renderer-chain.cpp
+          - upstream/src/scene-terrain/simplex-noise-renderer.cpp
+          - upstream/src/scene-terrain/terrain-renderer.cpp
+          - upstream/src/scene-terrain/texture-renderer.cpp
+          - upstream/src/scene-texture.cpp
+          - upstream/src/shared-library.cpp
+          - upstream/src/text-renderer.cpp
+          - upstream/src/texture.cpp
+        c:
+          - upstream/src/glad/src/egl.c
+          - upstream/src/glad/src/gles2.c
+      includes:
+        - include
+        - upstream/src
+        - upstream/src/libmatrix
+        - upstream/src/scene-ideas
+        - upstream/src/scene-terrain
+        - upstream/src/glad/include
+        - upstream/src/libpng
+        - upstream/src/zlib
+        - upstream/src/libjpeg-turbo
+        - ../libdrm/upstream
+        - ../libdrm/upstream/include
+        - ../libdrm/upstream/include/drm
+        - ../mesa/upstream/include
+        - ../mesa/upstream/src/gbm/main
+      defines:
+        - USE_EXCEPTIONS=1
+        - GLMARK2_USE_DRM=1
+        - GLMARK2_USE_GLESv2=1
+        - GLMARK2_USE_EGL=1
+        - __GBM__=1
+      flags:
+        cpp: -include luna_glmark_config.h
+      library_dirs:
+        - build/glmark2-zlib/armv8a-user
+        - build/glmark2-png/armv8a-user
+        - build/glmark2-jpeg/armv8a-user
+        - ../libdrm/build/libdrm/armv8a-user
+      links: [glmark2-png, glmark2-jpeg, glmark2-zlib, drm]
+      linker_flags: >-
+        ../mesa/build/mesa-25.2.8/src/gbm/libgbm.so.1.0.0
+        ../mesa/build/mesa-25.2.8/src/egl/libEGL.so.1.0.0
+        ../mesa/build/mesa-25.2.8/src/gallium/targets/dri/libgallium-25.2.8.so
+        ../mesa/build/mesa-25.2.8/src/mapi/es2api/libGLESv2.so.2.0.0
+        ../mesa/build/mesa-25.2.8/src/mapi/shared-glapi/libglapi.a
+        ../mesa/build/mesa-25.2.8/subprojects/expat-2.5.0/libexpat.so.1.8.10
+        -Wl,-rpath,$ORIGIN -lm -ldl -lpthread

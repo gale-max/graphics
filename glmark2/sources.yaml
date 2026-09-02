@@ -1,0 +1,5 @@
+name: glmark2
+remote: https://github.com/glmark2/glmark2.git
+tag: 2023.01
+revision: 42e3d8fe3aa88743ef90348138f643f7b04a9237
+

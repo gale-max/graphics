@@ -1,0 +1,59 @@
+project: luna-libdrm
+
+platforms:
+  $include: ../platforms/armv8a-user.yaml
+
+targets:
+  libdrm:
+    build:
+      type: static_linked_library
+      artifact: libdrm.a
+      sources:
+        c:
+          - upstream/xf86drm.c
+          - upstream/xf86drmHash.c
+          - upstream/xf86drmRandom.c
+          - upstream/xf86drmSL.c
+          - upstream/xf86drmMode.c
+      includes:
+        - include
+        - upstream
+        - upstream/include
+        - upstream/include/drm
+      defines:
+        - LUNA_GRAPHICS=1
+        - DEFAULT_DRIVER_NAME=panfrost
+        - DISABLE_GET_BUSID=1
+        - DISABLE_SET_BUSID=1
+        - DISABLE_GET_MAGIC=1
+        - DISABLE_AUTH_MAGIC=1
+        - DISABLE_SET_INTERFACE_VERSION=1
+        - DISABLE_SET_MASTER=1
+        - DISABLE_DROP_MASTER=1
+      flags:
+        c: -include luna_graphics_compat.h
+
+  modetest:
+    build:
+      type: executable
+      artifact: modetest.elf
+      depends_on: [libdrm]
+      sources:
+        c:
+          - upstream/tests/modetest/buffers.c
+          - upstream/tests/modetest/cursor.c
+          - upstream/tests/modetest/modetest.c
+          - upstream/tests/util/pattern.c
+          - upstream/tests/util/kms.c
+          - upstream/tests/util/format.c
+      includes:
+        - upstream
+        - upstream/include
+        - upstream/include/drm
+        - upstream/tests
+        - upstream/tests/modetest
+      defines: [HAVE_CAIRO=0]
+      library_dirs:
+        - build/libdrm/armv8a-user
+      links: [drm]
+      linker_flags: -lm -pthread

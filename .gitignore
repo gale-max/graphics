@@ -1,0 +1,11 @@
+**/build/
+**/output/
+**/dist/
+**/stage/
+**/.pytest_cache/
+**/__pycache__/
+*.log
+compile_commands.json
+
+!artifacts/
+!artifacts/**

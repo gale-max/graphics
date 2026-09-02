@@ -1,0 +1,45 @@
+project: luna-kmscube
+
+platforms:
+  $include: ../platforms/armv8a-user.yaml
+
+targets:
+  kmscube:
+    build:
+      type: executable
+      artifact: kmscube.elf
+      sources:
+        c:
+          - upstream/common.c
+          - upstream/cube-smooth.c
+          - upstream/cube-gears.c
+          - upstream/cube-tex.c
+          - upstream/cube-shadertoy.c
+          - upstream/drm-atomic.c
+          - upstream/drm-common.c
+          - upstream/drm-legacy.c
+          - upstream/drm-offscreen.c
+          - upstream/esTransform.c
+          - upstream/frame-512x512-NV12.c
+          - upstream/frame-512x512-RGBA.c
+          - upstream/kmscube.c
+          - upstream/perfcntrs.c
+      includes:
+        - upstream
+        - ../libdrm/upstream
+        - ../libdrm/upstream/include
+        - ../libdrm/upstream/include/drm
+        - ../mesa/upstream/include
+        - ../mesa/upstream/src/gbm/main
+      defines: [HAVE_GLES3=1]
+      library_dirs:
+        - ../libdrm/build/libdrm/armv8a-user
+      links: [drm]
+      linker_flags: >-
+        ../mesa/build/mesa-25.2.8/src/gbm/libgbm.so.1.0.0
+        ../mesa/build/mesa-25.2.8/src/egl/libEGL.so.1.0.0
+        ../mesa/build/mesa-25.2.8/src/gallium/targets/dri/libgallium-25.2.8.so
+        ../mesa/build/mesa-25.2.8/src/mapi/es2api/libGLESv2.so.2.0.0
+        ../mesa/build/mesa-25.2.8/src/mapi/shared-glapi/libglapi.a
+        ../mesa/build/mesa-25.2.8/subprojects/expat-2.5.0/libexpat.so.1.8.10
+        -Wl,-rpath,$ORIGIN -lm -pthread

@@ -1,0 +1,66 @@
+{
+  "architecture": "armv8a-user",
+  "sources": {
+    "libdrm": "76a1e97a6e49b7ee6d0bcba36d40927fd18324f9",
+    "mesa": "f97d7dcca0e51d7e20ed4342bb5ea8afea7db7fa",
+    "kmscube": "60be8e4bd4eb27b5b7c68b4c609304edb87bde8d",
+    "glmark2": "42e3d8fe3aa88743ef90348138f643f7b04a9237"
+  },
+  "artifacts": [
+    {
+      "path": "artifacts/armv8a-user/mesa/libgbm.so.1.0.0",
+      "size": 208968,
+      "sha256": "df39c282d242bfdf4039b9a36ac4f49b95d0f7a5db738b7f86a9bb10226e7e72"
+    },
+    {
+      "path": "artifacts/armv8a-user/mesa/libEGL.so.1.0.0",
+      "size": 381928,
+      "sha256": "44038e636cd175735da24a99099ab34bdf2b5bf189221f67b56b02d819a20cba"
+    },
+    {
+      "path": "artifacts/armv8a-user/mesa/libGLESv2.so.2.0.0",
+      "size": 94840,
+      "sha256": "e2eaf186275d5801a63da3c01167c709c840ecd2552416264e69b49b6ee31b75"
+    },
+    {
+      "path": "artifacts/armv8a-user/mesa/libgallium-25.2.8.so",
+      "size": 21754968,
+      "sha256": "29bd414c8afcd68678420dd830465dcbb133b9ae187221a5de3d3ee49a5846db"
+    },
+    {
+      "path": "artifacts/armv8a-user/mesa/dri_gbm.so",
+      "size": 87488,
+      "sha256": "87394388ae7b67753bc07bf002d31f65cf168e9afbab0f17dc215a4556dec03d"
+    },
+    {
+      "path": "artifacts/armv8a-user/mesa/libglapi.a",
+      "size": 61214,
+      "sha256": "0f233e5ee0412177b38728141feb7009dfc8c6de89e8853d8edf5c299b422148"
+    },
+    {
+      "path": "artifacts/armv8a-user/mesa/libexpat.so.1.8.10",
+      "size": 217848,
+      "sha256": "cb8e4beb13be7e53b8def8d8adff359776ad8ba85d5adeced5f42f4cd4ea3997"
+    },
+    {
+      "path": "artifacts/armv8a-user/glmark2/glmark2-drm.elf",
+      "size": 12976744,
+      "sha256": "f8274d51158f926752ec91b9440369267716090adbb7f3a2e9577cc15f6bf093"
+    },
+    {
+      "path": "artifacts/armv8a-user/libdrm/libdrm.a",
+      "size": 528944,
+      "sha256": "a287db95b2d953adcf48b5f52303d449b123be4109a31e21637e69327a4296b7"
+    },
+    {
+      "path": "artifacts/armv8a-user/libdrm/modetest.elf",
+      "size": 450144,
+      "sha256": "defd170f809535a7f519c12ddf6b3e8985853c479ee2d774d1213fdc46887f75"
+    },
+    {
+      "path": "artifacts/armv8a-user/kmscube/kmscube.elf",
+      "size": 1816400,
+      "sha256": "cf2168e919e1732e661f8181ffc87857e2f2a6cdb6b1ed57144315506c1bab03"
+    }
+  ]
+}

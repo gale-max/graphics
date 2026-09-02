@@ -1,0 +1,17 @@
+project: luna-mesa
+
+platforms:
+  $include: ../platforms/armv8a-user.yaml
+
+recipes:
+  mesa_windows_build:
+    description: 使用固定配置构建 Mesa Panfrost 运行库
+    steps:
+      - name: build_mesa
+        command: python
+        args: [scripts/build_windows.py]
+
+targets:
+  mesa-panfrost:
+    build:
+      recipe: mesa_windows_build

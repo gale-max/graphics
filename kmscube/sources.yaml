@@ -1,0 +1,4 @@
+name: kmscube
+remote: ssh://git@192.168.31.20:2222/ssmec-custom/ssmec_kmscube.git
+revision: 60be8e4bd4eb27b5b7c68b4c609304edb87bde8d
+
