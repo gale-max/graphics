@@ -26,7 +26,7 @@ GENERATED_DIRECTORIES = {"build", "output", "dist", "stage", ".pytest_cache", "_
 def test_graphics_root_contains_only_catboy_projects_and_shared_assets():
     entries = {
         path.name for path in ROOT.iterdir()
-        if path.name not in {".pytest_cache", "__pycache__"}
+        if path.name not in {".git", ".pytest_cache", "__pycache__"}
     }
     assert entries == ROOT_ENTRIES
 
