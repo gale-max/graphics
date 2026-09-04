@@ -4,6 +4,7 @@
 **/stage/
 **/.pytest_cache/
 **/__pycache__/
+.worktrees/
 *.log
 compile_commands.json
 
