@@ -6,10 +6,11 @@
 Qt 5.15.19 qmake 交叉编译 SDK。应用开发阶段不得依赖 WSL，生成程序运行于
 Luna ARMv8A 用户态进程模型。
 
-SDK 支持 QtCore、QtConcurrent、QtNetwork、QtXml、QtGui、QtWidgets、
-QtOpenGL、QtSerialPort、EGLFS/KMS、常用输入插件、QtWayland Client 和
-Qt Wayland Compositor。QtWebEngine、QtMultimedia、QtBluetooth、QtSQL 驱动
-和 CMake Kit 不属于本阶段范围。
+SDK 支持 QtCore、QtConcurrent、QtNetwork、QtXml、QtTest、QtGui、QtWidgets、
+QtOpenGL、QtSvg、QtPrintSupport、QtQml、QtQuick、QtQuickWidgets、QtSql、
+QtSerialPort、QtSerialBus、QtWebSockets、QtNetworkAuth、EGLFS/KMS、常用输入
+插件、QtWayland Client 和 Qt Wayland Compositor。QtWebEngine、QtMultimedia、
+QtBluetooth、QtNfc、QtLocation、Qt3D、QtCharts 和 CMake Kit 不属于本阶段范围。
 
 ## 构建模型
 
@@ -72,9 +73,27 @@ QtBase 构建以下模块：
 - OpenGL ES 2、EGL、GBM、DRM/KMS 和 EGLFS。
 - imageformats、platforms、egldeviceintegrations、generic 和 inputmethods 中实际
   可用的插件。
+- QtSql 使用随 SDK 构建的 SQLite 插件；不默认引入外部数据库客户端。
 
-EGLFS 保留为 Luna 直接显示的基础 QPA。XCB、LinuxFB、D-Bus、OpenSSL 和 ICU
-继续按当前移植约束关闭，除非后续模块出现经过验证的硬依赖。
+EGLFS 保留为 Luna 直接显示的基础 QPA。XCB、LinuxFB、D-Bus 和 ICU 继续按
+当前移植约束关闭。
+
+### 网络与安全
+
+QtNetwork 必须覆盖 TCP、UDP、DNS、IPv4/IPv6、HTTP、HTTPS 和代理。SDK 固定
+交付 OpenSSL 3.0.18 LTS 目标动态库并构建 Qt 的运行时 OpenSSL 后端，不依赖板端
+偶然存在的 TLS 库。QtWebSockets 同时验证 `ws` 和 `wss`，QtNetworkAuth 验证其
+HTTP 回调和令牌请求基础路径。Unix domain socket 是 Wayland 和本机进程通信的
+共同基础能力。
+
+### 常用扩展模块
+
+- QtSvg 支持 SVG 解码与 Widgets 绘制。
+- QtQml、QtQuick 和 QtQuickWidgets 支持声明式界面及 OpenGL ES 场景图。
+- QtSql 固定 SQLite 后端并验证建表、事务和并发读取。
+- QtSerialBus 构建通用库；具体 CAN 后端仅在 Luna 存在对应设备接口时启用。
+- Windows 主机工具还包括 `qmlcachegen.exe`、`qmlimportscanner.exe`、
+  `lrelease.exe` 和 `lupdate.exe`。
 
 ### 输入
 
@@ -143,6 +162,8 @@ SDK 只提供 qmake Kit。`qtcreator-kit.json` 记录建议的 Qt Creator 配置
 - QtWidgets 控件程序。
 - QtOpenGL ES 程序。
 - QtSerialPort 程序。
+- QtNetwork HTTP/HTTPS、TCP/UDP、DNS、代理和 WebSocket 程序。
+- QtSvg、QtQml/Quick、QtSql/SQLite 和 QtSerialBus 程序。
 - evdev 输入程序。
 - Wayland Client 程序。
 - Wayland Compositor 程序。
@@ -158,6 +179,8 @@ SDK 只提供 qmake Kit。`qtcreator-kit.json` 记录建议的 Qt Creator 配置
 - OpenGL 连续渲染无黑帧、内存故障或资源泄漏。
 - 键盘、鼠标和触摸输入事件可达 Qt 事件循环。
 - QtSerialPort 完成双向收发、超时和重复打开关闭。
+- HTTP/HTTPS、TCP/UDP、DNS、代理、WebSocket/WSS 均完成连接、收发和断开。
+- SVG、QML/Quick、SQLite 和 SerialBus 公共 API 可加载运行。
 - Wayland Compositor 启动后至少两个客户端可显示、退出并重新连接。
 - 每类程序连续运行和退出 20 次，系统保持可响应且无残留进程、文件描述符、
   DRM/GEM 对象或 socket。
