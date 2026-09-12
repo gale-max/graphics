@@ -121,6 +121,9 @@ if with_dri
   if with_platform_wayland
     deps_for_egl += [dep_wayland_client, dep_wayland_server, dep_wayland_egl_headers]
     link_for_egl += libloader_wayland_helper
+    if get_option('luna-prebuilt-wayland')
+      incs_for_egl += inc_luna_wayland
+    endif
     files_egl += files('drivers/dri2/platform_wayland.c')
     files_egl += wp_files['linux-dmabuf-unstable-v1']
     if with_wayland_bind_display

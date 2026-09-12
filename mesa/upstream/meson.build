@@ -1985,14 +1985,18 @@ endif
 
 with_wayland_bind_display = with_platform_wayland and get_option('legacy-wayland').contains('bind-wayland-display')
 if with_platform_wayland
-  dep_wl_scanner = dependency('wayland-scanner', native: true)
-  prog_wl_scanner = find_program(dep_wl_scanner.get_variable(pkgconfig : 'wayland_scanner'))
-  if dep_wl_scanner.version().version_compare('>= 1.15')
-    wl_scanner_arg = 'private-code'
-  else
-    wl_scanner_arg = 'code'
+  if not get_option('luna-prebuilt-wayland')
+    dep_wl_scanner = dependency('wayland-scanner', native: true)
+    prog_wl_scanner = find_program(dep_wl_scanner.get_variable(pkgconfig : 'wayland_scanner'))
+    if dep_wl_scanner.version().version_compare('>= 1.15')
+      wl_scanner_arg = 'private-code'
+    else
+      wl_scanner_arg = 'code'
+    endif
   endif
-  dep_wl_protocols = dependency('wayland-protocols', version : '>= 1.41', default_options: [ 'tests=false' ])
+  if not get_option('luna-prebuilt-wayland')
+    dep_wl_protocols = dependency('wayland-protocols', version : '>= 1.41', default_options: [ 'tests=false' ])
+  endif
   dep_wayland_client = dependency('wayland-client', version : '>=1.18')
   dep_wayland_server = dependency('wayland-server', version : '>=1.18')
   if with_egl

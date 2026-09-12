@@ -9,13 +9,13 @@
   "artifacts": [
     {
       "path": "artifacts/armv8a-user/mesa/libgbm.so.1.0.0",
-      "size": 208968,
-      "sha256": "df39c282d242bfdf4039b9a36ac4f49b95d0f7a5db738b7f86a9bb10226e7e72"
+      "size": 209144,
+      "sha256": "2d12a61abb0c60f1e4da58193389f1ce1495ce1bf03eb2f2e13731426ed7ad11"
     },
     {
       "path": "artifacts/armv8a-user/mesa/libEGL.so.1.0.0",
-      "size": 381928,
-      "sha256": "44038e636cd175735da24a99099ab34bdf2b5bf189221f67b56b02d819a20cba"
+      "size": 464792,
+      "sha256": "155333fbbd604a6d7302baaa66fecebc084c0618f8f7639b7cd210c22cd215b2"
     },
     {
       "path": "artifacts/armv8a-user/mesa/libGLESv2.so.2.0.0",
@@ -24,13 +24,13 @@
     },
     {
       "path": "artifacts/armv8a-user/mesa/libgallium-25.2.8.so",
-      "size": 21754968,
-      "sha256": "29bd414c8afcd68678420dd830465dcbb133b9ae187221a5de3d3ee49a5846db"
+      "size": 21755216,
+      "sha256": "344628809029843fa56ffe4679eadac1944c4b2d07b47d2555fb361f5eb1d99d"
     },
     {
       "path": "artifacts/armv8a-user/mesa/dri_gbm.so",
-      "size": 87488,
-      "sha256": "87394388ae7b67753bc07bf002d31f65cf168e9afbab0f17dc215a4556dec03d"
+      "size": 87640,
+      "sha256": "98632c5da1e9945a854326d0a4977e43676c4656e730d9e246828238e4949f98"
     },
     {
       "path": "artifacts/armv8a-user/mesa/libglapi.a",
@@ -49,8 +49,8 @@
     },
     {
       "path": "artifacts/armv8a-user/libdrm/libdrm.a",
-      "size": 528944,
-      "sha256": "a287db95b2d953adcf48b5f52303d449b123be4109a31e21637e69327a4296b7"
+      "size": 529168,
+      "sha256": "ad6027d99aa686bac803a8ff74789d98011337be4828461829bee218872e7c79"
     },
     {
       "path": "artifacts/armv8a-user/libdrm/modetest.elf",

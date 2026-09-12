@@ -1,0 +1,7 @@
+prefix=D:/luna-sdk/qt5-5.15.19/staging
+includedir=${prefix}/include
+
+Name: wayland-egl-backend
+Description: Backend wayland-egl interface
+Version: 3
+Cflags: -ID:/luna-sdk/qt5-5.15.19/staging/include

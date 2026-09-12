@@ -64,7 +64,7 @@ def test_target_compilation_only_serializes_windows_link_jobs():
     )
 
     assert '"-Dbackend_max_links=1"' in source
-    assert 'run(["ninja", "-j8"' in source
+    assert 'run(["ninja", "-j4"' in source
 
 
 def test_windows_build_includes_standard_gbm_backend():
@@ -74,6 +74,25 @@ def test_windows_build_includes_standard_gbm_backend():
     )
 
     assert '"src/gbm/backends/dri/dri_gbm.so"' in source
+
+
+def test_windows_build_exports_wayland_display_binding_extension():
+    """Qt Wayland compositor 依赖 Mesa 的 EGL_WL_bind_wayland_display。"""
+    source = (ROOT / "mesa/scripts/build_windows.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "-Dlegacy-wayland=bind-wayland-display" in source
+
+
+def test_windows_build_uses_luna_runtime_driver_paths():
+    """交叉构建不得把 Windows 盘符固化到目标机的 Mesa 搜索路径。"""
+    source = (ROOT / "mesa/scripts/build_windows.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "-Dgbm-backends-path=/media/mmcblk1p1/graphics" in source
+    assert "-Ddri-drivers-path=/media/mmcblk1p1/graphics/dri" in source
 
 
 def test_target_lexer_materials_are_versioned_and_complete():

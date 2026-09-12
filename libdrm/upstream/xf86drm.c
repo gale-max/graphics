@@ -1026,6 +1026,16 @@ static int drmGetMinorBase(int type)
 
 static int drmGetMinorType(int major, int minor)
 {
+#ifdef LUNA_GRAPHICS
+    (void)major;
+    if (minor >= 128 && minor < 128 + DRM_MAX_MINOR) {
+        return DRM_NODE_RENDER;
+    }
+    if (minor >= 0 && minor < DRM_MAX_MINOR) {
+        return DRM_NODE_PRIMARY;
+    }
+    return -1;
+#else
 #ifdef __FreeBSD__
     char name[SPECNAMELEN];
     int id;
@@ -1058,6 +1068,7 @@ static int drmGetMinorType(int major, int minor)
     }
 
     return -1;
+#endif
 }
 
 static const char *drmGetMinorName(int type)
@@ -3321,7 +3332,8 @@ static bool drmNodeIsDRM(int maj, int min)
 {
 #ifdef LUNA_GRAPHICS
     (void)maj;
-    return min >= 0 && min < DRM_MAX_MINOR;
+    return (min >= 0 && min < DRM_MAX_MINOR) ||
+           (min >= 128 && min < 128 + DRM_MAX_MINOR);
 #elif defined(__linux__)
     char path[64];
     struct stat sbuf;
@@ -3354,6 +3366,13 @@ drm_public int drmGetNodeTypeFromFd(int fd)
 
     maj = major(sbuf.st_rdev);
     min = minor(sbuf.st_rdev);
+
+#ifdef LUNA_GRAPHICS
+    fprintf(stderr,
+            "libdrm node: fd=%d mode=0x%lx rdev=0x%lx major=%d minor=%d\n",
+            fd, (unsigned long)sbuf.st_mode, (unsigned long)sbuf.st_rdev,
+            maj, min);
+#endif
 
     if (!drmNodeIsDRM(maj, min) || !S_ISCHR(sbuf.st_mode)) {
         errno = EINVAL;

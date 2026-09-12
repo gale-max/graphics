@@ -2,9 +2,6 @@ from pathlib import Path
 import importlib.util
 import shutil
 
-import yaml
-
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -16,38 +13,11 @@ def load_driver():
     return module
 
 
-def load_build_file():
-    return yaml.safe_load((ROOT / "build.yaml").read_text(encoding="utf-8"))
-
-
-def test_qt5_declares_split_catboy_targets():
-    data = load_build_file()
-    targets = data["targets"]
-
-    assert set(targets) == {
-        "qt5-prepare",
-        "qt5-configure",
-        "qt5-core",
-        "qt5-gui-eglfs",
-        "qt5-kms",
-        "qt5-eglfs-smoke",
-    }
-    assert targets["qt5-configure"]["build"]["recipe"] == "qt5_configure"
-    assert targets["qt5-core"]["build"]["recipe"] == "qt5_core"
-    assert targets["qt5-gui-eglfs"]["build"]["recipe"] == "qt5_gui_eglfs"
-    assert targets["qt5-kms"]["build"]["recipe"] == "qt5_kms"
-    assert targets["qt5-eglfs-smoke"]["build"]["recipe"] == "qt5_eglfs_smoke"
-
-
-def test_qt5_recipes_use_the_windows_python_driver():
-    data = load_build_file()
-    recipes = data["recipes"]
-
-    for name in ("qt5_configure", "qt5_core", "qt5_gui_eglfs", "qt5_kms"):
-        step = recipes[name]["steps"][0]
-        assert step["command"] == "python"
-        assert step["args"][0] == "scripts/qt5_build.py"
-        assert "--stage" in step["args"]
+def test_qt5_is_built_directly_on_linux():
+    assert not (ROOT / "build.yaml").exists()
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "/home/surest/nanopc-workspace/graphics/qt5" in readme
+    assert "不通过 Catboy 构建" in readme
 
 
 def test_qt5_driver_and_arm_mkspec_are_tracked():
@@ -60,10 +30,10 @@ def test_qt5_driver_and_arm_mkspec_are_tracked():
     assert "QMAKE_INCDIR_OPENGL_ES2" in text
     assert "QMAKE_SYSROOT" in text
     assert "QMAKE_PLATFORM         = linux unix posix" in text
-    assert "-lgbm -lglapi -lexpat" in text
+    assert "-lgbm -l:libgallium-25.2.8.so -lexpat" in text
 
 
-def test_qt5_driver_keeps_outputs_under_catboy_build_directory():
+def test_qt5_driver_keeps_outputs_under_linux_build_directory():
     text = (ROOT / "scripts" / "qt5_build.py").read_text(encoding="utf-8")
     assert 'BUILD = ROOT / "build"' in text
     assert 'SOURCE = ROOT / "upstream"' in text
@@ -81,12 +51,12 @@ def test_qt5_driver_stages_graphics_libraries_and_passes_search_paths():
     assert '"libGLESv2.so"' in text
     assert '"libgbm.so"' in text
     assert '"libgbm.so.1"' in text
-    assert '"libglapi.so.0"' in text
+    assert '"libgallium-25.2.8.so"' in text
     assert '"libexpat.so.1"' in text
     assert "LIBDRM_UAPI_INCLUDE" in text
     assert '"gbm.pc"' in text
     assert '"-pkg-config"' in text
-    assert '"-no-pch"' not in text
+    assert '"-no-pch"' in text
     assert 'env["PKG_CONFIG_PATH"]' in text
     assert 'env["PKG_CONFIG"]' in text
     assert 'STAGING_BIN / "pkg-config.exe"' in text
@@ -101,8 +71,22 @@ def test_qt5_configure_discards_stale_cache_and_protects_unix_prefixes():
     assert 'env["MSYS2_ARG_CONV_EXCL"] = "/usr"' in text
 
 
+def test_qt5_uses_windows_target_sysroot_and_checks_abi():
+    text = (ROOT / "scripts" / "qt5_build.py").read_text(encoding="utf-8")
+    assert "REFERENCE_SYSROOT" in text
+    assert "verify_target_abi()" in text
+    assert 'Path("usr/include/features.h")' in text
+    assert 'Path("lib64/libc.so.6")' in text
+    assert 'Path("lib/ld-linux-aarch64.so.1")' in text
+    assert 'Path("usr/lib64/crt1.o")' in text
+    assert 'BUILD / "target-abi.json"' in text
+
+
 def test_qt5_stages_use_qtbase_make_targets():
     text = (ROOT / "scripts" / "qt5_build.py").read_text(encoding="utf-8")
+    build_body = text.split("def build(stage: str, jobs: int)", 1)[1]
+    assert "materialize_spec()" in build_body.split("def build_smoke", 1)[0]
+    assert "if destination.read_text(encoding=\"utf-8\") == content" in text
     assert '"core": "sub-corelib"' in text
     assert '"gui-eglfs": "sub-gui"' in text
     assert '"sub-platformsupport"' in text
@@ -149,10 +133,30 @@ def test_qt5_configure_cleanup_retries_transient_windows_lock(tmp_path, monkeypa
 def test_qt5_has_armv8_eglfs_smoke_application():
     app = ROOT / "examples" / "eglfs-smoke"
     assert (app / "eglfs-smoke.pro").is_file()
+    project = (app / "eglfs-smoke.pro").read_text(encoding="utf-8")
+    assert "QT += gui\n" in project
+    assert "opengl" not in project
     source = (app / "main.cpp").read_text(encoding="utf-8")
     assert "QOpenGLWindow" in source
     assert "QOpenGLFunctions" in source
 
-    data = load_build_file()
-    step = data["recipes"]["qt5_eglfs_smoke"]["steps"][0]
-    assert step["args"] == ["scripts/qt5_build.py", "--stage", "smoke"]
+    text = (ROOT / "scripts" / "qt5_build.py").read_text(encoding="utf-8")
+    assert 'elif args.stage == "smoke"' in text
+
+
+def test_qt5_has_widgets_display_application():
+    app = ROOT / "examples" / "widgets-display"
+    assert (app / "widgets-display.pro").is_file()
+    project = (app / "widgets-display.pro").read_text(encoding="utf-8")
+    assert "QT += widgets\n" in project
+
+    source = (app / "main.cpp").read_text(encoding="utf-8")
+    assert "QLineEdit" in source
+    assert "setReadOnly(true)" in source
+    assert "QCheckBox" in source
+    assert "setChecked(true)" in source
+    assert "showFullScreen()" in source
+
+    build = (ROOT / "scripts" / "qt5_build.py").read_text(encoding="utf-8")
+    assert '"widgets"' in build
+    assert '"widgets-display"' in build

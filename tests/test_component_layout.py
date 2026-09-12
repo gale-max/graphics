@@ -7,10 +7,12 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 COMPONENTS = ("libdrm", "mesa", "kmscube", "glmark2", "qt5")
+CATBOY_COMPONENTS = ("libdrm", "mesa", "kmscube", "glmark2")
 ROOT_ENTRIES = {
     "README.md",
     ".gitignore",
     "artifacts",
+    "docs",
     "glmark2",
     "kmscube",
     "libdrm",
@@ -26,7 +28,7 @@ GENERATED_DIRECTORIES = {"build", "output", "dist", "stage", ".pytest_cache", "_
 def test_graphics_root_contains_only_catboy_projects_and_shared_assets():
     entries = {
         path.name for path in ROOT.iterdir()
-        if path.name not in {".git", ".pytest_cache", "__pycache__"}
+        if path.name not in {".git", ".pytest_cache", ".worktrees", "__pycache__"}
     }
     assert entries == ROOT_ENTRIES
 
@@ -44,7 +46,7 @@ def test_artifact_manifest_is_generated_by_a_repository_script():
 
 
 def test_every_graphics_component_is_a_standalone_catboy_project():
-    for name in COMPONENTS:
+    for name in CATBOY_COMPONENTS:
         component = ROOT / name
         assert component.is_dir(), name
         assert (component / "build.yaml").is_file(), name
@@ -52,10 +54,21 @@ def test_every_graphics_component_is_a_standalone_catboy_project():
         assert (component / "README.md").is_file(), name
 
 
+def test_qt5_uses_native_linux_build_and_runtime_packaging():
+    component = ROOT / "qt5"
+
+    assert (component / "sources.yaml").is_file()
+    assert (component / "README.md").is_file()
+    assert (component / "sdk.md").is_file()
+    assert (component / "scripts/qt5_build.py").is_file()
+    assert (component / "scripts/package_runtime.py").is_file()
+    assert not (component / "build.yaml").exists()
+
+
 def test_windows_build_descriptions_do_not_depend_on_wsl_or_external_workspaces():
     forbidden = ("command: wsl", "/mnt/", "sylixos_workspace")
 
-    for name in COMPONENTS:
+    for name in CATBOY_COMPONENTS:
         build = (ROOT / name / "build.yaml").read_text(encoding="utf-8")
         for marker in forbidden:
             assert marker not in build, (name, marker)

@@ -1,0 +1,14 @@
+prefix=D:/luna-sdk/qt5-5.15.19/staging
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+datarootdir=${prefix}/share
+pkgdatadir=${pc_sysrootdir}${datarootdir}/wayland
+
+Name: Wayland Server
+Description: Server side implementation of the Wayland protocol
+Version: 1.23.1
+Requires.private: libffi
+Libs: -LD:/luna-sdk/qt5-5.15.19/staging/lib -lwayland-server
+Libs.private: -lm -pthread -lrt
+Cflags: -ID:/luna-sdk/qt5-5.15.19/staging/include

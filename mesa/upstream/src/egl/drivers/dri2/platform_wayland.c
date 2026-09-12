@@ -1954,12 +1954,16 @@ drm_handle_device(void *data, struct wl_drm *drm, const char *device)
 {
    struct dri2_egl_display *dri2_dpy = data;
    drm_magic_t magic;
+   int node_type;
 
    dri2_dpy->device_name = strdup(device);
+   _eglLog(_EGL_DEBUG, "wayland-egl: wl_drm device=%s", device);
    if (!dri2_dpy->device_name)
       return;
 
    dri2_dpy->fd_render_gpu = loader_open_device(dri2_dpy->device_name);
+   _eglLog(_EGL_DEBUG, "wayland-egl: wl_drm open fd=%d errno=%d",
+           dri2_dpy->fd_render_gpu, errno);
    if (dri2_dpy->fd_render_gpu == -1) {
       _eglLog(_EGL_WARNING, "wayland-egl: could not open %s (%s)",
               dri2_dpy->device_name, strerror(errno));
@@ -1968,7 +1972,11 @@ drm_handle_device(void *data, struct wl_drm *drm, const char *device)
       return;
    }
 
-   if (drmGetNodeTypeFromFd(dri2_dpy->fd_render_gpu) == DRM_NODE_RENDER) {
+   errno = 0;
+   node_type = drmGetNodeTypeFromFd(dri2_dpy->fd_render_gpu);
+   _eglLog(_EGL_DEBUG, "wayland-egl: drm node type=%d errno=%d",
+           node_type, errno);
+   if (node_type == DRM_NODE_RENDER) {
       dri2_dpy->authenticated = true;
    } else {
       if (drmGetMagic(dri2_dpy->fd_render_gpu, &magic)) {
@@ -2094,10 +2102,17 @@ default_dmabuf_feedback_main_device(
 
    /* Given the device, look for a render node and try to open it. */
    memcpy(&dev, device->data, sizeof(dev));
+   _eglLog(_EGL_DEBUG,
+           "wayland-egl: dmabuf main_device size=%zu dev=0x%llx",
+           device->size, (unsigned long long)dev);
    node = loader_get_render_node(dev);
+   _eglLog(_EGL_DEBUG, "wayland-egl: dmabuf render node=%s",
+           node ? node : "<none>");
    if (!node)
       return;
    fd = loader_open_device(node);
+   _eglLog(_EGL_DEBUG, "wayland-egl: dmabuf open fd=%d errno=%d", fd,
+           errno);
    if (fd == -1) {
       free(node);
       return;
@@ -2213,12 +2228,17 @@ registry_handle_global_drm(void *data, struct wl_registry *registry,
 
 #ifdef HAVE_BIND_WL_DISPLAY
    if (strcmp(interface, wl_drm_interface.name) == 0) {
+      _eglLog(_EGL_DEBUG, "wayland-egl: registry wl_drm name=%u version=%u",
+              name, version);
       dri2_dpy->wl_drm_version = MIN2(version, 2);
       dri2_dpy->wl_drm_name = name;
    } else
 #endif
    if (strcmp(interface, zwp_linux_dmabuf_v1_interface.name) == 0 &&
               version >= 3) {
+      _eglLog(_EGL_DEBUG,
+              "wayland-egl: registry linux_dmabuf name=%u version=%u",
+              name, version);
       dri2_dpy->wl_dmabuf = wl_registry_bind(
          registry, name, &zwp_linux_dmabuf_v1_interface,
          MIN2(version, ZWP_LINUX_DMABUF_V1_GET_DEFAULT_FEEDBACK_SINCE_VERSION));
@@ -2507,6 +2527,9 @@ dri2_wl_add_configs_for_visuals(_EGLDisplay *disp)
 static bool
 dri2_initialize_wayland_drm_extensions(struct dri2_egl_display *dri2_dpy)
 {
+   _eglLog(_EGL_DEBUG,
+           "wayland-egl: extensions begin dmabuf=%p wl_drm_name=%u",
+           (void *)dri2_dpy->wl_dmabuf, dri2_dpy->wl_drm_name);
    /* Get default dma-buf feedback */
    if (dri2_dpy->wl_dmabuf &&
        zwp_linux_dmabuf_v1_get_version(dri2_dpy->wl_dmabuf) >=
@@ -2520,6 +2543,10 @@ dri2_initialize_wayland_drm_extensions(struct dri2_egl_display *dri2_dpy)
 
    if (roundtrip(dri2_dpy) < 0)
       return false;
+
+   _eglLog(_EGL_DEBUG,
+           "wayland-egl: feedback complete render_fd=%d wl_drm_name=%u",
+           dri2_dpy->fd_render_gpu, dri2_dpy->wl_drm_name);
 
    /* Destroy the default dma-buf feedback and the format table. */
    if (dri2_dpy->wl_dmabuf_feedback) {
@@ -2535,6 +2562,7 @@ dri2_initialize_wayland_drm_extensions(struct dri2_egl_display *dri2_dpy)
       /* wl_drm not advertised by compositor, so can't continue */
       if (dri2_dpy->wl_drm_name == 0)
          return false;
+      _eglLog(_EGL_DEBUG, "wayland-egl: binding wl_drm fallback");
       wl_drm_bind(dri2_dpy);
 
       if (dri2_dpy->wl_drm == NULL)

@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: MIT
 
 inc_loader = include_directories('.')
+inc_luna_wayland = include_directories('../../../generated/wayland/25.2.8')
 
 if with_platform_wayland
-  wp_dir = dep_wl_protocols.get_variable(pkgconfig : 'pkgdatadir', internal : 'pkgdatadir')
   wp_protos = {
     'fifo-v1': 'staging/fifo/fifo-v1.xml',
     'commit-timing-v1': 'staging/commit-timing/commit-timing-v1.xml',
@@ -15,28 +15,37 @@ if with_platform_wayland
     'color-management-v1': 'staging/color-management/color-management-v1.xml',
   }
   wp_files = {}
-  foreach name, xml : wp_protos
-    code = custom_target(
-      name + '-protocol.c',
-      input : files(join_paths(wp_dir, xml)),
-      output : name + '-protocol.c',
-      command : [prog_wl_scanner, wl_scanner_arg, '@INPUT@', '@OUTPUT@'],
-    )
-    header = custom_target(
-      name + '-client-protocol.h',
-      input : files(join_paths(wp_dir, xml)),
-      output : name + '-client-protocol.h',
-      command : [prog_wl_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
-    )
-    wp_files += { name: [code, header] }
-  endforeach
+  if get_option('luna-prebuilt-wayland')
+    foreach name : wp_protos.keys()
+      code = files('../../../generated/wayland/25.2.8/' + name + '-protocol.c')
+      header = files('../../../generated/wayland/25.2.8/' + name + '-client-protocol.h')
+      wp_files += { name: [code, header] }
+    endforeach
+  else
+    wp_dir = dep_wl_protocols.get_variable(pkgconfig : 'pkgdatadir', internal : 'pkgdatadir')
+    foreach name, xml : wp_protos
+      code = custom_target(
+        name + '-protocol.c',
+        input : files(join_paths(wp_dir, xml)),
+        output : name + '-protocol.c',
+        command : [prog_wl_scanner, wl_scanner_arg, '@INPUT@', '@OUTPUT@'],
+      )
+      header = custom_target(
+        name + '-client-protocol.h',
+        input : files(join_paths(wp_dir, xml)),
+        output : name + '-client-protocol.h',
+        command : [prog_wl_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
+      )
+      wp_files += { name: [code, header] }
+    endforeach
+  endif
 
   libloader_wayland_helper = static_library(
     'loader_wayland_helper',
     'loader_wayland_helper.c',
     wp_files['presentation-time'],
     gnu_symbol_visibility : 'hidden',
-    include_directories : [inc_include, inc_src, inc_gallium],
+    include_directories : [inc_include, inc_src, inc_gallium, inc_luna_wayland],
     dependencies : [
       idep_mesautil,
       dep_wayland_client,

@@ -1,4 +1,4 @@
-QT += gui opengl
+QT += gui
 CONFIG += c++11 release
 CONFIG -= app_bundle
 

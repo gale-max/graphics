@@ -23,7 +23,8 @@ TARGETS = (
     "src/gbm/backends/dri/dri_gbm.so",
 )
 OPTIONS = (
-    "-Dplatforms=", "-Degl-native-platform=drm",
+    "-Dplatforms=wayland", "-Degl-native-platform=drm",
+    "-Dlegacy-wayland=bind-wayland-display",
     "-Dgallium-drivers=panfrost", "-Dvulkan-drivers=",
     "-Degl=enabled", "-Dgbm=enabled", "-Dgles1=disabled",
     "-Dgles2=enabled", "-Dopengl=true", "-Dglx=disabled",
@@ -36,8 +37,22 @@ OPTIONS = (
     "-Dlmsensors=disabled", "-Dzstd=disabled", "-Dzlib=disabled",
     "-Dtools=", "-Dvideo-codecs=", "-Dselinux=false",
     "-Dperfetto=false", "-Dbuildtype=release", "-Db_ndebug=true",
+    "-Dgbm-backends-path=/media/mmcblk1p1/graphics",
+    "-Ddri-drivers-path=/media/mmcblk1p1/graphics/dri",
     "-Dluna-prebuilt-panfrost=true",
+    "-Dluna-prebuilt-wayland=true",
     "-Dbackend_max_links=1",
+)
+
+QT_SDK_STAGING = Path(r"D:/luna-sdk/qt5-5.15.19/staging")
+PKGCONFIG_DIRECTORY = ROOT / "pkgconfig"
+WAYLAND_PACKAGES = (
+    "wayland-client.pc",
+    "wayland-server.pc",
+    "wayland-egl.pc",
+    "wayland-egl-backend.pc",
+    "wayland-cursor.pc",
+    "libffi.pc",
 )
 
 
@@ -58,6 +73,33 @@ def prepare_host_tools(environment: dict[str, str]) -> None:
     environment["PATH"] = (
         str(HOST_TOOL_DIRECTORY) + os.pathsep + environment.get("PATH", "")
     )
+
+
+def prepare_wayland_pkgconfig() -> None:
+    """为 Windows 交叉构建生成指向 Luna Qt SDK 的 Wayland 元数据。"""
+    source_directory = QT_SDK_STAGING / "lib/pkgconfig"
+    if not QT_SDK_STAGING.is_dir():
+        raise FileNotFoundError(f"Qt SDK staging not found: {QT_SDK_STAGING}")
+
+    PKGCONFIG_DIRECTORY.mkdir(parents=True, exist_ok=True)
+    for package in WAYLAND_PACKAGES:
+        source = source_directory / package
+        if not source.is_file():
+            raise FileNotFoundError(f"Wayland pkg-config file not found: {source}")
+        content = source.read_text(encoding="utf-8")
+        lines = content.splitlines()
+        lines[0] = f"prefix={QT_SDK_STAGING.as_posix()}"
+        for index, line in enumerate(lines):
+            if line.startswith("Cflags:"):
+                lines[index] = f"Cflags: -I{(QT_SDK_STAGING / 'include').as_posix()}"
+            elif line.startswith("Libs: -L"):
+                library = line.split(" ")[-1]
+                lines[index] = (
+                    f"Libs: -L{(QT_SDK_STAGING / 'lib').as_posix()} {library}"
+                )
+        (PKGCONFIG_DIRECTORY / package).write_text(
+            "\n".join(lines) + "\n", encoding="utf-8", newline="\n"
+        )
 
 
 def fix_cross_detected_configuration() -> None:
@@ -97,7 +139,10 @@ def install_target_lexers() -> None:
 
 def main() -> int:
     environment = os.environ.copy()
+    environment["PYTHONUTF8"] = "1"
+    environment["PYTHONIOENCODING"] = "utf-8"
     environment["PKG_CONFIG_PATH"] = str(ROOT / "pkgconfig")
+    prepare_wayland_pkgconfig()
     prepare_host_tools(environment)
     configured = (BUILD / "build.ninja").is_file()
     BUILD.mkdir(parents=True, exist_ok=True)
@@ -117,7 +162,7 @@ def main() -> int:
     install_target_lexers()
     # 目标 lexer 与 Panfrost 主机工具输出均已固化，目标编译可直接并行执行。
     # 链接由 Meson job pool 串行，编译仍保持并行。
-    run(["ninja", "-j8", "-C", str(BUILD), *TARGETS], environment)
+    run(["ninja", "-j4", "-C", str(BUILD), *TARGETS], environment)
     return 0
 
 

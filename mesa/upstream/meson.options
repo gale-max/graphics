@@ -846,3 +846,10 @@ option(
   value : false,
   description : 'Use versioned Panfrost host-tool outputs bundled by Luna'
 )
+
+option(
+  'luna-prebuilt-wayland',
+  type : 'boolean',
+  value : false,
+  description : 'Use repository-generated Wayland protocol sources for Luna cross builds',
+)
