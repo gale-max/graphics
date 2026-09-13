@@ -15,6 +15,11 @@ SDK 的完整定义、组成、工具链与 sysroot 约束、主机工具（Wind
 
 ## 关键约定
 
+- 源码复现以 `sources.yaml`、仓库内官方源码归档及其 SHA-256 为准。
+  `upstream/qtbase-everywhere-src-*` 是可重新展开的工作树；Luna 平台
+  mkspec 的权威模板位于 `mkspecs/luna-armv8a`，构建时由
+  `scripts/qt5_build.py` 写入工作树。工作树中的绝对路径不是 SDK 输入。
+
 - 交叉工具链：Arm GNU Toolchain 14.3.Rel1（`aarch64-none-linux-gnu`）。
 - 目标 glibc/sysroot 不用工具链自带副本，统一复用 Luna 认可的目标 sysroot；
   `scripts/qt5_build.py` 每次 `configure` 前校验 `features.h`、动态加载器、
