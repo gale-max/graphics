@@ -7,6 +7,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD_YAML = (ROOT / "build.yaml").read_text(encoding="utf-8")
+SCENE_SOURCES = (ROOT / "scene-sources.yaml").read_text(encoding="utf-8")
 CONFIG_HEADER = (ROOT / "include" / "luna_glmark_config.h").read_text(
     encoding="utf-8"
 )
@@ -17,7 +18,7 @@ class Glmark2BuildContractTest(unittest.TestCase):
 
     def test_uses_explicit_drm_gles2_sources(self):
         self.assertIn("upstream/src/native-state-drm.cpp", BUILD_YAML)
-        self.assertIn("upstream/src/gl-state-egl.cpp", BUILD_YAML)
+        self.assertIn("upstream/src/gl-state-egl.cpp", SCENE_SOURCES)
         self.assertIn("upstream/src/glad/src/gles2.c", BUILD_YAML)
         self.assertIn("GLMARK2_USE_DRM=1", BUILD_YAML)
         self.assertNotIn("GLMARK2_USE_GBM=1", BUILD_YAML)
@@ -27,7 +28,6 @@ class Glmark2BuildContractTest(unittest.TestCase):
         forbidden = (
             "android.cpp",
             "native-state-gbm.cpp",
-            "native-state-wayland.cpp",
             "native-state-win32.cpp",
             "native-state-x11.cpp",
             "gl-state-glx.cpp",
@@ -35,6 +35,16 @@ class Glmark2BuildContractTest(unittest.TestCase):
         )
         for source in forbidden:
             self.assertNotIn(source, BUILD_YAML)
+
+        drm_target = BUILD_YAML.split("  glmark2-wayland:", 1)[0]
+        self.assertNotIn("native-state-wayland.cpp", drm_target)
+
+    def test_wayland_target_is_separate_from_drm_backend(self):
+        wayland_target = BUILD_YAML.split("  glmark2-wayland:", 1)[1]
+
+        self.assertIn("native-state-wayland.cpp", wayland_target)
+        self.assertNotIn("native-state-drm.cpp", wayland_target)
+        self.assertIn("GLMARK2_USE_WAYLAND=1", wayland_target)
 
     def test_uses_bundled_image_libraries(self):
         for target in ("glmark2-zlib", "glmark2-png", "glmark2-jpeg"):
