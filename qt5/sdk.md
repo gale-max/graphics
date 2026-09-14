@@ -600,7 +600,7 @@ Wayland 多窗口验收先启动 compositor，再切换客户端平台插件：
 ```text
 setenv XDG_RUNTIME_DIR /tmp
 setenv WAYLAND_DISPLAY wayland-0
-load /media/mmcblk1p1/qt5/bin/wayland-compositor.elf
+spawn /media/mmcblk1p1/qt5/bin/wayland-compositor.elf
 setenv QT_QPA_PLATFORM wayland
 load /media/mmcblk1p1/qt5/bin/widgets-display.elf
 load /media/mmcblk1p1/qt5/bin/qt-analogclock.elf

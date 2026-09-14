@@ -340,6 +340,11 @@ NativeStateWayland::display()
 bool
 NativeStateWayland::create_window(WindowProperties const& properties)
 {
+    /* 稳定版 xdg-shell 是本实现的必要协议，缺失时不能解引用空代理。 */
+    if (!display_ || !display_->compositor || !display_->xdg_wm_base) {
+        Log::error("Wayland compositor requires wl_compositor and xdg_wm_base\n");
+        return false;
+    }
     struct my_output *output = 0;
     if (!display_->outputs.empty()) output = display_->outputs.at(0);
     window_ = new struct my_window();

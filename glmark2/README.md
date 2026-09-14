@@ -23,8 +23,10 @@ D:\workspace\luna-workspace\catboy\catboy.exe build glmark2-drm -f build.yaml -p
 
 ## 部署和运行
 
-将 ELF、Mesa 动态库和 upstream 的完整 `data` 目录部署到 SD 卡的
-`/media/mmcblk0p1/graphics`。默认数据目录已编译为
+将 ELF、同一构建批次的 Mesa 动态库和 upstream 的完整 `data` 目录部署到
+`/media/mmcblk0p1/graphics`。不得混用不同构建批次的 `libEGL`、`libgbm`、
+`dri_gbm.so` 和 `libgallium`，否则 Mesa 内部结构 ABI 不一致会在
+`dri2_setup_screen()` 阶段崩溃。默认数据目录已编译为
 `/media/mmcblk0p1/graphics/data`，也可以通过参数覆盖：
 
 ```text
@@ -40,6 +42,16 @@ Mesa 25 将 GBM DRI 后端拆分为独立的 `dri_gbm.so`。运行前必须将�
 
 ```text
 setenv GBM_BACKENDS_PATH=/media/mmcblk0p1/graphics
+```
+
+当前 Mesa 同时启用 DRM 与 Wayland，DRM 直出程序也依赖 Wayland 运行库。
+NanoPC-T4 上使用下列完整搜索路径：
+
+```text
+setenv LD_LIBRARY_PATH /media/mmcblk1p1/qt5/lib:/media/mmcblk1p1/graphics:/media/mmcblk0p1/graphics
+setenv LIBGL_DRIVERS_PATH /media/mmcblk1p1/graphics/dri
+setenv GBM_BACKENDS_PATH /media/mmcblk1p1/graphics
+setenv GBM_BACKEND dri
 ```
 
 ## 构建契约检查

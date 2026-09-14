@@ -462,9 +462,15 @@ NativeStateDRM::cleanup()
 {
     // Restore CRTC state if necessary
     if (crtc_) {
-        int status = drmModeSetCrtc(fd_, crtc_->crtc_id, crtc_->buffer_id,
-                                    crtc_->x, crtc_->y, &connector_->connector_id,
-                                    1, &crtc_->mode);
+        /* 没有原扫描缓冲区时恢复为关闭状态，不能以 FB 0 设置有效模式。 */
+        const bool restore_mode = crtc_->mode_valid && crtc_->buffer_id;
+        int status = drmModeSetCrtc(fd_, crtc_->crtc_id,
+                                    restore_mode ? crtc_->buffer_id : 0,
+                                    restore_mode ? crtc_->x : 0,
+                                    restore_mode ? crtc_->y : 0,
+                                    restore_mode ? &connector_->connector_id : nullptr,
+                                    restore_mode ? 1 : 0,
+                                    restore_mode ? &crtc_->mode : nullptr);
         if (status < 0) {
             Log::error("Failed to restore original CRTC: %d\n", status);
         }
