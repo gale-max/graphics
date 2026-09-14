@@ -1,0 +1,113 @@
+# This file contains the configuration for the gitlab ci.
+# See the .gitlab-ci/generate-gitlab-ci.py file for more info
+#
+
+# We're happy to rebuild all containers when one changes.
+.default_tag: &default_tag '2022-02-02.0'
+
+distributions:
+  - name: fedora
+    tag: *default_tag
+    want_qemu: true
+    use_for_tarball_tests: true
+    versions:
+      - '34'
+      - '35'
+    packages:
+      - git
+      - gcc
+      - gcc-c++
+      - meson
+      - automake
+      - autoconf
+      - libtool
+      - make
+      - pkgconfig
+      - python3
+      - check-devel
+      - valgrind
+      - binutils
+      - doxygen
+      - xz
+      - clang-analyzer
+  - name: ubuntu
+    tag: *default_tag
+    versions:
+      - '21.04'
+      - '21.10'
+    packages:
+      - git
+      - gcc
+      - g++
+      - meson
+      - automake
+      - autoconf
+      - libtool
+      - make
+      - pkg-config
+      - python3
+      - check
+      - valgrind
+      - binutils
+      - doxygen
+      - xz-utils
+  - name: debian
+    tag: *default_tag
+    versions:
+      - 'stable'
+      - 'sid'
+    packages:
+      - git
+      - gcc
+      - g++
+      - meson
+      - automake
+      - autoconf
+      - libtool
+      - make
+      - pkg-config
+      - python3
+      - check
+      - valgrind
+      - binutils
+      - doxygen
+      - xz-utils
+  - name: arch
+    tag: *default_tag
+    versions:
+      - 'rolling'
+    packages:
+      - git
+      - gcc
+      - meson
+      - automake
+      - autoconf
+      - libtool
+      - make
+      - pkgconfig
+      - python3
+      - check
+      - valgrind
+      - binutils
+      - doxygen
+  - name: alpine
+    tag: *default_tag
+    versions:
+      - 'latest'
+    packages:
+      - git
+      - gcc
+      - g++
+      - meson
+      - automake
+      - autoconf
+      - libtool
+      - make
+      - pkgconfig
+      - python3
+      - check-dev
+      - valgrind
+      - binutils
+      - doxygen
+      - xz
+      - linux-headers

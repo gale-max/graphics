@@ -1,0 +1,4 @@
+name: weston
+remote: https://gitlab.freedesktop.org/wayland/weston.git
+tag: 9.0.0
+revision: 04d3ae265d8d8f84352c8dac21ec40b2fe07e7d2

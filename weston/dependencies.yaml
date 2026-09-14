@@ -1,0 +1,33 @@
+dependencies:
+  pixman:
+    remote: https://gitlab.freedesktop.org/pixman/pixman.git
+    tag: pixman-0.40.0
+    revision: 244383bf9f3493c014985de46876e40fd5db43f3
+  xkbcommon:
+    remote: https://github.com/xkbcommon/libxkbcommon.git
+    tag: xkbcommon-1.4.0
+    revision: ea6580cc3913d93655ecf92a5913de652315efc3
+  libinput:
+    remote: https://gitlab.freedesktop.org/libinput/libinput.git
+    tag: 1.20.0
+    revision: 7850e4aecd188bcc3779957a670017e3edb9bced
+  libevdev:
+    remote: https://gitlab.freedesktop.org/libevdev/libevdev.git
+    tag: libevdev-1.12.1
+    revision: 8ced382eb800ce01da1d6a9b9da2f1159f9042e0
+  cairo:
+    remote: https://gitlab.freedesktop.org/cairo/cairo.git
+    tag: 1.16.0
+    revision: 3ad43122b21a3299dd729dc8462d6b8f7f01142d
+  pango:
+    remote: https://gitlab.gnome.org/GNOME/pango.git
+    tag: 1.50.6
+    revision: 37a427018c92a2bc679ef104097e07a619609c9c
+  glib:
+    remote: https://gitlab.gnome.org/GNOME/glib.git
+    tag: 2.72.4
+    revision: 6ed6303e40d6eaf80f2acfbfbcadbb169d156e9c
+  libpng:
+    remote: https://github.com/glennrp/libpng.git
+    tag: v1.6.37
+    revision: a40189cf881e9f0db80511c382292a5604c3c3d1

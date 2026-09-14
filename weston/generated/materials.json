@@ -1,0 +1,123 @@
+{
+  "generated_c": [
+    "meson-private/sanitycheckc.c",
+    "protocol/input-method-unstable-v1-protocol.c",
+    "protocol/input-timestamps-unstable-v1-protocol.c",
+    "protocol/linux-dmabuf-unstable-v1-protocol.c",
+    "protocol/linux-explicit-synchronization-unstable-v1-protocol.c",
+    "protocol/pointer-constraints-unstable-v1-protocol.c",
+    "protocol/presentation-time-protocol.c",
+    "protocol/relative-pointer-unstable-v1-protocol.c",
+    "protocol/text-cursor-position-protocol.c",
+    "protocol/text-input-unstable-v1-protocol.c",
+    "protocol/viewporter-protocol.c",
+    "protocol/weston-content-protection-protocol.c",
+    "protocol/weston-debug-protocol.c",
+    "protocol/weston-desktop-shell-protocol.c",
+    "protocol/weston-direct-display-protocol.c",
+    "protocol/weston-screenshooter-protocol.c",
+    "protocol/weston-touch-calibration-protocol.c",
+    "protocol/xdg-output-unstable-v1-protocol.c",
+    "protocol/xdg-shell-protocol.c"
+  ],
+  "generated_headers": [
+    "config.h",
+    "include/libweston/version.h",
+    "protocol/linux-dmabuf-unstable-v1-client-protocol.h",
+    "protocol/linux-dmabuf-unstable-v1-server-protocol.h",
+    "protocol/linux-explicit-synchronization-unstable-v1-client-protocol.h",
+    "protocol/linux-explicit-synchronization-unstable-v1-server-protocol.h",
+    "protocol/presentation-time-client-protocol.h",
+    "protocol/presentation-time-server-protocol.h",
+    "protocol/viewporter-client-protocol.h",
+    "protocol/viewporter-server-protocol.h",
+    "protocol/weston-desktop-shell-client-protocol.h",
+    "protocol/weston-desktop-shell-server-protocol.h",
+    "protocol/xdg-shell-client-protocol.h",
+    "protocol/xdg-shell-server-protocol.h",
+    "tests/test-config.h"
+  ],
+  "target_sources": {
+    "desktop-shell": [
+      "generated/protocol/input-method-unstable-v1-protocol.c",
+      "generated/protocol/weston-desktop-shell-protocol.c",
+      "upstream/desktop-shell/exposay.c",
+      "upstream/desktop-shell/input-panel.c",
+      "upstream/desktop-shell/shell.c"
+    ],
+    "drm-backend": [
+      "generated/protocol/linux-dmabuf-unstable-v1-protocol.c",
+      "upstream/libweston/backend-drm/drm-gbm.c",
+      "upstream/libweston/backend-drm/drm.c",
+      "upstream/libweston/backend-drm/fb.c",
+      "upstream/libweston/backend-drm/kms.c",
+      "upstream/libweston/backend-drm/modes.c",
+      "upstream/libweston/backend-drm/state-helpers.c",
+      "upstream/libweston/backend-drm/state-propose.c"
+    ],
+    "gl-renderer": [
+      "generated/protocol/linux-dmabuf-unstable-v1-protocol.c",
+      "upstream/libweston/renderer-gl/egl-glue.c",
+      "upstream/libweston/renderer-gl/gl-renderer.c",
+      "upstream/libweston/vertex-clipping.c"
+    ],
+    "weston": [
+      "upstream/compositor/executable.c"
+    ],
+    "weston-9": [
+      "generated/protocol/input-method-unstable-v1-protocol.c",
+      "generated/protocol/input-timestamps-unstable-v1-protocol.c",
+      "generated/protocol/linux-dmabuf-unstable-v1-protocol.c",
+      "generated/protocol/linux-explicit-synchronization-unstable-v1-protocol.c",
+      "generated/protocol/pointer-constraints-unstable-v1-protocol.c",
+      "generated/protocol/presentation-time-protocol.c",
+      "generated/protocol/relative-pointer-unstable-v1-protocol.c",
+      "generated/protocol/text-cursor-position-protocol.c",
+      "generated/protocol/text-input-unstable-v1-protocol.c",
+      "generated/protocol/viewporter-protocol.c",
+      "generated/protocol/weston-content-protection-protocol.c",
+      "generated/protocol/weston-debug-protocol.c",
+      "generated/protocol/weston-direct-display-protocol.c",
+      "generated/protocol/weston-screenshooter-protocol.c",
+      "generated/protocol/weston-touch-calibration-protocol.c",
+      "generated/protocol/xdg-output-unstable-v1-protocol.c",
+      "upstream/libweston/animation.c",
+      "upstream/libweston/bindings.c",
+      "upstream/libweston/clipboard.c",
+      "upstream/libweston/compositor.c",
+      "upstream/libweston/content-protection.c",
+      "upstream/libweston/data-device.c",
+      "upstream/libweston/input.c",
+      "upstream/libweston/linux-dmabuf.c",
+      "upstream/libweston/linux-explicit-synchronization.c",
+      "upstream/libweston/linux-sync-file.c",
+      "upstream/libweston/log.c",
+      "upstream/libweston/noop-renderer.c",
+      "upstream/libweston/pixel-formats.c",
+      "upstream/libweston/pixman-renderer.c",
+      "upstream/libweston/plugin-registry.c",
+      "upstream/libweston/screenshooter.c",
+      "upstream/libweston/timeline.c",
+      "upstream/libweston/touch-calibration.c",
+      "upstream/libweston/weston-direct-display.c",
+      "upstream/libweston/weston-log-file.c",
+      "upstream/libweston/weston-log-flight-rec.c",
+      "upstream/libweston/weston-log-wayland.c",
+      "upstream/libweston/weston-log.c",
+      "upstream/libweston/zoom.c",
+      "upstream/shared/matrix.c"
+    ],
+    "weston-desktop-shell": [
+      "generated/protocol/weston-desktop-shell-protocol.c",
+      "upstream/clients/desktop-shell.c"
+    ]
+  },
+  "targets": [
+    "weston-9",
+    "weston",
+    "desktop-shell",
+    "weston-desktop-shell",
+    "drm-backend",
+    "gl-renderer"
+  ]
+}

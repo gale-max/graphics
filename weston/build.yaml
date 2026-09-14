@@ -1,0 +1,18 @@
+project: luna-weston
+
+platforms:
+  $include: ../platforms/armv8a-user.yaml
+
+recipes:
+  weston_windows_build:
+    description: 使用固定源码与生成材料构建 Weston desktop-shell
+    steps:
+      - name: build_weston
+        command: python
+        args: [scripts/build_windows.py]
+
+targets:
+  weston-desktop:
+    build:
+      recipe: weston_windows_build
+

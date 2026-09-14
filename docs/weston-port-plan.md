@@ -30,12 +30,12 @@
 **Interfaces:**
 - Produces: `linux_osal_atomic32_*`、`linux_osal_atomic_long_*`、`linux_osal_atomic64_*`。
 
-- [ ] 编写失败测试，要求公共原子头只调用 OSAL 且不存在 GCC/arch 原子调用。
-- [ ] 运行专项测试并确认因 OSAL API 缺失失败。
-- [ ] 定义带明确旧值/新值返回语义的 OSAL 原子接口。
-- [ ] 用 OSAL 调用重写 Linux 原子兼容函数。
-- [ ] Luna 强实现调用 `luna/atomic.h` 和 Luna 按宽度交换接口。
-- [ ] 运行专项及 Linux Runtime 全套测试。
+- [x] 编写失败测试，要求公共原子头只调用 OSAL 且不存在 GCC/arch 原子调用。
+- [x] 运行专项测试并确认因 OSAL API 缺失失败。
+- [x] 定义带明确旧值/新值返回语义的 OSAL 原子接口。
+- [x] 用 OSAL 调用重写 Linux 原子兼容函数。
+- [x] Luna 强实现调用 `luna/atomic.h` 和 Luna 按宽度交换接口。
+- [x] 运行专项及 Linux Runtime 全套测试。
 
 ### Task 2: 集成回归原子重构
 
@@ -48,9 +48,9 @@
 - Consumes: Task 1 的 Runtime OSAL 原子契约。
 - Produces: 不依赖编译器原子运行库的 NanoPC-T4 镜像。
 
-- [ ] 使用 `.catboy_lock` 协调集成构建。
-- [ ] 清理并完整构建 NanoPC-T4 user 目标。
-- [ ] 检查 ELF 未引入 `__atomic_*` 未解析符号。
+- [x] 使用 `.catboy_lock` 协调集成构建。
+- [x] 清理并完整构建 NanoPC-T4 user 目标。
+- [x] 检查 ELF 未引入 `__atomic_*` 未解析符号。
 - [ ] COM5 启动并运行 DRM glmark2 smoke。
 - [ ] 独立提交 Linux Runtime/Luna/arch 的原子改动。
 
@@ -65,9 +65,9 @@
 **Interfaces:**
 - Produces: `qt-wayland-smoke-compositor`。
 
-- [ ] 编写失败测试，要求 smoke 命名和不重叠双列布局。
-- [ ] 实现双列窗口布局并保留拖动、缩放和全屏状态处理。
-- [ ] 在 WSL 中构建 compositor，在 Windows 侧打包部署材料。
+- [x] 编写失败测试，要求 smoke 命名和不重叠双列布局。
+- [x] 实现双列窗口布局并保留拖动、缩放和全屏状态处理。
+- [x] 在 WSL 中构建 compositor，在 Windows 侧打包部署材料。
 - [ ] COM5 同时启动两个 Qt 客户端并验证显示、移动、退出和重连。
 - [ ] 提交 Qt smoke 资产。
 
@@ -84,10 +84,10 @@
 **Interfaces:**
 - Produces: 校验过的 Weston 9.0.0 源码和不含绝对路径的生成材料。
 
-- [ ] 编写来源清单和生成材料失败测试。
-- [ ] 下载并校验官方 Weston 9.0.0 源码。
-- [ ] 在 Ubuntu 20.04 WSL 关闭非目标功能并生成配置头、协议代码和源清单。
-- [ ] 将生成材料同步回 Windows 并运行可复现性检查。
+- [x] 编写来源清单和生成材料失败测试。
+- [x] 下载并校验官方 Weston 9.0.0 源码。
+- [x] 在 Ubuntu 20.04 WSL 关闭非目标功能并生成配置头、协议代码和源清单。
+- [x] 将生成材料同步回 Windows 并运行可复现性检查。
 
 ### Task 5: Windows Catboy 构建 Weston
 
