@@ -13,8 +13,8 @@ def test_desktop_shell_dependencies_are_fixed_to_commits():
         (ROOT / "dependencies.yaml").read_text(encoding="utf-8")
     )["dependencies"]
     required = {
-        "pixman", "xkbcommon", "libinput", "libevdev",
-        "cairo", "pango", "glib", "libpng",
+        "pixman", "xkbcommon", "libinput", "libevdev", "mtdev",
+        "cairo", "pango", "glib", "zlib", "libpng", "xkeyboard-config",
     }
 
     assert set(manifest) == required

@@ -69,6 +69,9 @@ def package_runtime(qt_root: Path, graphics_root: Path,
 
     require_file(qt_root / "lib/libQt5Core.so.5")
     require_file(qt_root / "plugins/platforms/libqwayland-generic.so")
+    require_file(
+        qt_root / "plugins/wayland-decoration-client/libbradient.so"
+    )
     for library in WAYLAND_LIBRARIES:
         require_file(graphics_root / "lib" / library)
 

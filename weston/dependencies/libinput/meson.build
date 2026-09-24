@@ -658,7 +658,7 @@ test('tools-builddir-lookup-installed',
      args : [test_builddir_lookup.full_path(), '--builddir-is-null'],
      env : ['LD_LIBRARY_PATH=@0@'.format(meson.current_build_dir())],
      suite : ['all'],
-     workdir : '/tmp')
+     workdir : meson.current_build_dir())
 
 ############ tests ############
 

@@ -217,6 +217,18 @@ option(
 	description: 'Tests: allow running with GL-renderer'
 )
 option(
+	'luna-pregenerated-protocols',
+	type: 'boolean',
+	value: false,
+	description: 'Use the protocol sources fixed by the Luna material build'
+)
+option(
+	'luna-runtime-prefix',
+	type: 'string',
+	value: '',
+	description: 'Target runtime prefix used by Luna cross builds'
+)
+option(
 	'doc',
 	type: 'boolean',
 	value: false,

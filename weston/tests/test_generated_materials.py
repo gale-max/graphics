@@ -47,6 +47,26 @@ def test_desktop_and_drm_protocol_materials_are_checked_in():
         assert (ROOT / "generated" / relative).is_file(), relative
 
 
+def test_runtime_input_protocol_materials_are_checked_in():
+    protocols = (
+        "input-method-unstable-v1",
+        "input-timestamps-unstable-v1",
+        "pointer-constraints-unstable-v1",
+        "relative-pointer-unstable-v1",
+        "text-input-unstable-v1",
+        "xdg-output-unstable-v1",
+    )
+
+    for protocol in protocols:
+        for suffix in (
+            "client-protocol.h",
+            "server-protocol.h",
+            "protocol.c",
+        ):
+            relative = f"protocol/{protocol}-{suffix}"
+            assert (ROOT / "generated" / relative).is_file(), relative
+
+
 def test_build_target_sources_are_normalized_and_checked_in():
     manifest = json.loads(
         (ROOT / "generated/materials.json").read_text(encoding="utf-8")

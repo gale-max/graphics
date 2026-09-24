@@ -2540,8 +2540,15 @@ drm_device_is_kms(struct drm_backend *b, struct udev_device *device)
 		return false;
 
 	res = drmModeGetResources(fd);
-	if (!res)
+	if (!res) {
+		weston_log("DRM probe %s: drmModeGetResources failed: %s\n",
+			   filename, strerror(errno));
 		goto out_fd;
+	}
+
+	weston_log("DRM probe %s: crtcs=%d connectors=%d encoders=%d\n",
+		   filename, res->count_crtcs, res->count_connectors,
+		   res->count_encoders);
 
 	if (res->count_crtcs <= 0 || res->count_connectors <= 0 ||
 	    res->count_encoders <= 0)

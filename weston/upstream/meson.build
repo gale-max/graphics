@@ -27,7 +27,10 @@ else
 	error('Bad versions in meson.build: libweston_major is too low')
 endif
 
-dir_prefix = get_option('prefix')
+dir_prefix = get_option('luna-runtime-prefix')
+if dir_prefix == ''
+	dir_prefix = get_option('prefix')
+endif
 dir_bin = join_paths(dir_prefix, get_option('bindir'))
 dir_data = join_paths(dir_prefix, get_option('datadir'))
 dir_include_libweston = 'libweston-@0@'.format(libweston_major)
@@ -43,6 +46,9 @@ dir_protocol_libweston = join_paths('libweston-@0@'.format(libweston_major), 'pr
 
 public_inc = include_directories('include')
 common_inc = [ include_directories('.'), public_inc ]
+if get_option('luna-pregenerated-protocols')
+	common_inc += include_directories('../generated/protocol')
+endif
 
 pkgconfig = import('pkgconfig')
 
@@ -163,7 +169,9 @@ subdir('remoting')
 subdir('pipewire')
 subdir('clients')
 subdir('wcap')
-subdir('tests')
+if not get_option('luna-pregenerated-protocols')
+	subdir('tests')
+endif
 subdir('data')
 subdir('man')
 

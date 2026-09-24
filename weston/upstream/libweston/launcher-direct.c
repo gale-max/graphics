@@ -97,6 +97,19 @@ struct launcher_direct {
 	struct wl_event_source *vt_source;
 };
 
+#ifdef LUNA_OS
+static int
+setup_luna_session(struct launcher_direct *launcher)
+{
+	/* Luna 直接管理单一图形会话，不提供 Linux VT 或 logind。 */
+	launcher->tty = -1;
+	launcher->kb_mode = -1;
+	launcher->drm_fd = -1;
+	launcher->compositor->session_active = true;
+	return 0;
+}
+#endif
+
 static int
 vt_handler(int signal_number, void *data)
 {
@@ -300,6 +313,12 @@ launcher_direct_connect(struct weston_launcher **out, struct weston_compositor *
 	launcher->base.iface = &launcher_direct_iface;
 	launcher->compositor = compositor;
 
+#ifdef LUNA_OS
+	if (setup_luna_session(launcher) < 0) {
+		free(launcher);
+		return -1;
+	}
+#else
 	if (strcmp("seat0", seat_id) == 0) {
 		if (setup_tty(launcher, tty) == -1) {
 			free(launcher);
@@ -308,6 +327,7 @@ launcher_direct_connect(struct weston_launcher **out, struct weston_compositor *
 	} else {
 		launcher->tty = -1;
 	}
+#endif
 
 	* (struct launcher_direct **) out = launcher;
 	return 0;
@@ -332,6 +352,8 @@ launcher_direct_get_vt(struct weston_launcher *base)
 {
 	struct launcher_direct *launcher = wl_container_of(base, launcher, base);
 	struct stat s;
+	if (launcher->tty < 0)
+		return -1;
 	if (fstat(launcher->tty, &s) < 0)
 		return -1;
 

@@ -7,6 +7,10 @@ dependencies:
     remote: https://github.com/xkbcommon/libxkbcommon.git
     tag: xkbcommon-1.4.0
     revision: ea6580cc3913d93655ecf92a5913de652315efc3
+  xkeyboard-config:
+    remote: https://gitlab.freedesktop.org/xkeyboard-config/xkeyboard-config.git
+    tag: xkeyboard-config-2.35.1
+    revision: 930d18cc3f9d7886a1f0980526b010a209eec2a3
   libinput:
     remote: https://gitlab.freedesktop.org/libinput/libinput.git
     tag: 1.20.0
@@ -15,6 +19,10 @@ dependencies:
     remote: https://gitlab.freedesktop.org/libevdev/libevdev.git
     tag: libevdev-1.12.1
     revision: 8ced382eb800ce01da1d6a9b9da2f1159f9042e0
+  mtdev:
+    remote: https://github.com/rydberg/mtdev.git
+    tag: v1.1.5
+    revision: 4381b78fea54de0e775bf54952b2f95e5a06c57d
   cairo:
     remote: https://gitlab.freedesktop.org/cairo/cairo.git
     tag: 1.16.0
@@ -27,6 +35,10 @@ dependencies:
     remote: https://gitlab.gnome.org/GNOME/glib.git
     tag: 2.72.4
     revision: 6ed6303e40d6eaf80f2acfbfbcadbb169d156e9c
+  zlib:
+    remote: https://github.com/madler/zlib.git
+    tag: v1.3.1
+    revision: 51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf
   libpng:
     remote: https://github.com/glennrp/libpng.git
     tag: v1.6.37

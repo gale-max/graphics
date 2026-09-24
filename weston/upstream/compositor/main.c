@@ -408,6 +408,73 @@ child_client_exec(int sockfd, const char *path)
 			   path, strerror(errno));
 }
 
+#ifdef LUNA_OS
+#define LUNA_NR_SPAWN 510
+#define LUNA_PROCESS_MAX_FDS 256
+
+extern char **environ;
+
+static pid_t
+luna_client_spawn(int sockfd, const char *path)
+{
+	char **child_env;
+	char *socket_env;
+	char *argv[] = { (char *) path, NULL };
+	unsigned long *files;
+	size_t env_count = 0;
+	size_t child_index = 0;
+	size_t file_count;
+	long pid;
+
+	if (sockfd < 0 || sockfd >= LUNA_PROCESS_MAX_FDS) {
+		errno = EMFILE;
+		return -1;
+	}
+
+	while (environ && environ[env_count])
+		env_count++;
+
+	child_env = calloc(env_count + 2, sizeof(*child_env));
+	if (!child_env)
+		return -1;
+
+	if (asprintf(&socket_env, "WAYLAND_SOCKET=%d", sockfd) < 0) {
+		free(child_env);
+		return -1;
+	}
+
+	for (size_t i = 0; i < env_count; i++) {
+		if (strncmp(environ[i], "WAYLAND_SOCKET=", 15) == 0)
+			continue;
+		child_env[child_index++] = environ[i];
+	}
+	child_env[child_index++] = socket_env;
+	child_env[child_index] = NULL;
+
+	file_count = (size_t) sockfd + 1;
+	files = malloc(file_count * sizeof(*files));
+	if (!files) {
+		free(socket_env);
+		free(child_env);
+		return -1;
+	}
+	for (size_t i = 0; i < file_count; i++)
+		files[i] = (unsigned long) -1;
+	files[0] = 0;
+	files[1] = 1;
+	files[2] = 2;
+	files[sockfd] = (unsigned long) sockfd;
+
+	pid = syscall(LUNA_NR_SPAWN, path, argv, child_env, NULL,
+		      files, file_count);
+	free(files);
+	free(socket_env);
+	free(child_env);
+
+	return (pid_t) pid;
+}
+#endif
+
 WL_EXPORT struct wl_client *
 weston_client_launch(struct weston_compositor *compositor,
 		     struct weston_process *proc,
@@ -427,7 +494,11 @@ weston_client_launch(struct weston_compositor *compositor,
 		return NULL;
 	}
 
+	#ifdef LUNA_OS
+	pid = luna_client_spawn(sv[1], path);
+	#else
 	pid = fork();
+	#endif
 	if (pid == -1) {
 		close(sv[0]);
 		close(sv[1]);
@@ -437,10 +508,12 @@ weston_client_launch(struct weston_compositor *compositor,
 		return NULL;
 	}
 
+	#ifndef LUNA_OS
 	if (pid == 0) {
 		child_client_exec(sv[1], path);
 		_exit(-1);
 	}
+	#endif
 
 	close(sv[1]);
 
@@ -590,6 +663,37 @@ static const char xdg_detail_message[] =
 	"Refer to your distribution on how to get it, or\n"
 	"http://www.freedesktop.org/wiki/Specifications/basedir-spec\n"
 	"on how to implement it.\n";
+
+#ifdef LUNA_OS
+static void
+luna_prepare_xdg_runtime_dir(void)
+{
+	const char *dir = getenv("XDG_RUNTIME_DIR");
+	struct stat state;
+
+	if (!getenv("LIBINPUT_QUIRKS_DIR"))
+		(void) setenv("LIBINPUT_QUIRKS_DIR",
+			      "/graphics/weston/share/libinput", 1);
+	if (!getenv("XKB_CONFIG_ROOT"))
+		(void) setenv("XKB_CONFIG_ROOT",
+			      "/graphics/weston/share/X11/xkb", 1);
+
+	if (!dir || !dir[0]) {
+		dir = "/tmp/weston-runtime";
+		if (setenv("XDG_RUNTIME_DIR", dir, 1) != 0)
+			return;
+	}
+
+	if (stat(dir, &state) != 0) {
+		if (errno != ENOENT || mkdir(dir, 0700) != 0)
+			return;
+	} else if (!S_ISDIR(state.st_mode)) {
+		return;
+	}
+
+	(void) chmod(dir, 0700);
+}
+#endif
 
 static void
 verify_xdg_runtime_dir(void)
@@ -942,7 +1046,19 @@ wet_get_binary_path(const char *name, const char *dir)
 WL_EXPORT char *
 wet_get_libexec_path(const char *name)
 {
+#ifdef LUNA_OS
+#define LUNA_LIBEXECDIR "/graphics/weston"
+	char path[PATH_MAX];
+	size_t len;
+
+	len = snprintf(path, sizeof path, "%s/%s.elf", LUNA_LIBEXECDIR, name);
+	if (len >= sizeof path)
+		return NULL;
+
+	return strdup(path);
+#else
 	return wet_get_binary_path(name, LIBEXECDIR);
+#endif
 }
 
 WL_EXPORT char *
@@ -3223,6 +3339,9 @@ wet_main(int argc, char *argv[])
 	free(cmdline);
 	log_uname();
 
+#ifdef LUNA_OS
+	luna_prepare_xdg_runtime_dir();
+#endif
 	verify_xdg_runtime_dir();
 
 	display = wl_display_create();

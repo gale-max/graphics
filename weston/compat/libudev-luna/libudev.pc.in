@@ -1,0 +1,9 @@
+prefix=@prefix@
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: libudev
+Description: Luna device manager compatibility for libudev consumers
+Version: 249
+Libs: -L${libdir} -ludev
+Cflags: -I${includedir}

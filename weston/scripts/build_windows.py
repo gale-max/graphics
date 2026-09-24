@@ -21,6 +21,9 @@ PRODUCTS = (
     "weston-desktop-shell.elf",
     "drm-backend.so",
     "gl-renderer.so",
+    "libexec_weston.so.0",
+    "libweston-9.so.0",
+    "libweston-desktop-9.so.0",
 )
 REQUIRED_SDK_LIBRARIES = (
     "libwayland-server.so",
@@ -78,4 +81,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -7,6 +7,12 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/package_runtime.py"
 
 
+def test_runtime_package_requires_wayland_decoration_plugin():
+    source = SCRIPT.read_text(encoding="utf-8")
+
+    assert 'plugins/wayland-decoration-client/libbradient.so' in source
+
+
 def load_module():
     spec = importlib.util.spec_from_file_location("package_runtime", SCRIPT)
     module = importlib.util.module_from_spec(spec)
@@ -28,6 +34,8 @@ def test_runtime_package_uses_one_sysroot_and_includes_wayland(tmp_path):
 
     write(qt_root / "lib/libQt5Core.so.5", b"qt")
     write(qt_root / "plugins/platforms/libqwayland-generic.so", b"plugin")
+    write(qt_root / "plugins/wayland-decoration-client/libbradient.so",
+          b"decoration")
     write(graphics_root / "lib/libwayland-client.so.0", b"client")
     write(graphics_root / "lib/libwayland-server.so.0", b"server")
     write(graphics_root / "lib/libwayland-cursor.so.0", b"cursor")
@@ -45,6 +53,8 @@ def test_runtime_package_uses_one_sysroot_and_includes_wayland(tmp_path):
         b"usr/lib/aarch64-linux-gnu/libc.so.6" * 8
     assert (output / "lib/libstdc++.so.6").is_file()
     assert (output / "lib/libwayland-cursor.so.0").read_bytes() == b"cursor"
+    assert (output / "plugins/wayland-decoration-client/libbradient.so").read_bytes() == \
+        b"decoration"
     manifest = json.loads((output / "runtime-manifest.json").read_text(
         encoding="utf-8"
     ))

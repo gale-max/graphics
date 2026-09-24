@@ -598,7 +598,7 @@ load /media/mmcblk1p1/qt5/bin/widgets-display.elf
 Wayland 多窗口验收先启动 compositor，再切换客户端平台插件：
 
 ```text
-setenv XDG_RUNTIME_DIR /tmp
+setenv XDG_RUNTIME_DIR /tmp/weston-runtime
 setenv WAYLAND_DISPLAY wayland-0
 spawn /media/mmcblk1p1/qt5/bin/wayland-compositor.elf
 setenv QT_QPA_PLATFORM wayland
