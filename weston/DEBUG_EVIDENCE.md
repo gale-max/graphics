@@ -200,6 +200,42 @@ com5-storage-weston-texture-round-1009b、com5-storage-texture-after32-1009b。
 
 ## 副本仓库记录
 
+## 2026-10-09 BO 锁、SLUB 交错与等待语义
+
+生产 Panfrost BO 创建/析构函数的宿主测试确认，128 次循环后遗留 128 个
+mappings.lock 句柄；已补销毁，通用 shmem 的 pages_lock/vmap_lock 原本已有
+销毁，未重复添加。另以生产 OSAL 取锁函数复现 K_WAIT_ABORTED 后无锁返回，
+普通 mutex_lock 现对中止等待重新阻塞取锁，未加入轮询延时。该测试不覆盖
+所有非法句柄错误，也不代表完整 Linux 可中断锁语义已实现。
+
+执行原生 DRM MM、当前 Runtime 红黑树/位操作的 20000 次区间插入、删除和
+复用，没有重叠或遗留节点；诊断输出头被宿主替换，不据此判断硬件并发正确。
+
+进一步执行 SLUB 生产函数的确定性交错模型，确认两处竞态：
+1. 远端释放在 slab 锁与 cache 锁之间丢失所有权后，可把已重新冻结的页
+   发布到 partial，也可能无 slab 锁修改远端 freelist。
+2. partial 获取方转交 freelist 未与远端归还同步，读取之后、清空之前
+   归还的对象会丢失。
+修复统一 slab -> cache 的锁顺序；获取方先保留 frozen 所有权并释放 cache
+锁，再在 slab 锁内转交 freelist。冻结页的远端归还仍只取 slab 锁。
+相关测试覆盖本核释放、远端释放、partial 归还和再占用交错，共 5 项通过。
+这些确认了软件缺陷，但未证明已覆盖本次所有卡死原因。
+
+两处 SLUB 修复版 CRC32 7a837366：人工曾确认可旋转、鼠标可移动；发送
+SIGTERM 后仍未退出。三个实例 pending 已清除并停在 ppoll，另一个最近
+syscall 为 BO 创建。运行中线程未读栈，因此不能把最近 syscall 当作活跃 PC。
+
+补充只读 syscall_active 标记，仅在分发函数调用前写入 nr+1、返回后清零，
+由 pstate 输出 active_syscall（-1 表示已返回），不参与任何执行决策。
+最终候选软件回归 358 项通过，集成全量构建 150.74 秒，零错误、33 个警告。
+BIN SHA256：cdd4745b5ebfb1539d40173c0c6e160bd12376e8d9f01144346268b98be059ea，
+板端 CRC32 97275b32 匹配。短周期四实例后 COM5 查询无回显，未采到有效
+活跃标记；不能继续声称已经定位在 BO 函数内，整体回收验收仍不通过。
+采集已结束并释放 COM5，请求复位后提前采样。没有强删活跃对象或关闭断言。
+
+关键证据：副本父目录 com5-slub-both-stop-state-1009、
+com5-active-syscall-short-cycle-1009、com5-active-syscall-before-term-1009。
+
 ## 2026-10-09 信号返回与回收链路验证
 
 新增执行生产函数的测试复现了进程信号未唤醒阻塞主线程、动态 glibc 分支
