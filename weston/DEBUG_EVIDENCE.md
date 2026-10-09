@@ -200,6 +200,35 @@ com5-storage-weston-texture-round-1009b、com5-storage-texture-after32-1009b。
 
 ## 副本仓库记录
 
+## 2026-10-09 信号返回与回收链路验证
+
+新增执行生产函数的测试复现了进程信号未唤醒阻塞主线程、动态 glibc 分支
+未准备信号返回入口。已将进程 pending 纳入主线程唤醒判断；poll 系列在
+未屏蔽信号到来时返回 EINTR。动态 glibc 进程只增加独立用户 RX 返回页，
+执行 rt_sigreturn，不初始化旧 TLS 或替代 ld-linux；exec 清除旧入口。
+缺少返回入口的错误路径也先释放已分配的信号帧。
+
+软件检查：Loader 161 项、Runtime/DRM/原生栈解码 188 项，共 349 项通过。
+集成全量构建 147.32 秒，零错误、33 个警告；BIN 1806032 字节，SHA256：
+dd96a7de3148c85ab802f17e5303fdd5ffc669dcd90eeda809e85222798cd4b7。
+板端 CRC32 7feca9a5 匹配。
+
+单实例 build:duration=30.0 --run-forever：SIGTERM 后正常退出码 0，PID 4
+随后 ESRCH，线程数回到 17。继续同次启动，四实例同样单场景周期（PID 5–8）
+全部 SIGTERM 正常退出码 0，全部 ESRCH，shell 正常，线程数回到 17。
+这些是串口和生命周期检查，不新增四窗口视觉验收结论。
+
+随后在同次启动重开四实例，恢复 build:duration=5.0 --run-forever，持续
+20 秒后发送 SIGTERM，再次失败。PID 9 停在 PANFROST_CREATE_BO，pending
+0x8000；PID 10–12 信号已清除，但重新进入 Wayland ppoll。close_stage
+均为 0，说明尚未进入 FD 回收。不能认定系统回收线程是此次阻塞根因。
+之前另一次短周期实验也复现同类 BO 创建/帧等待阻塞；没有关闭协议断言、
+绕过驱动等待或强制释放对象。整体短周期稳定性与完成标签仍不通过。
+
+证据在副本父目录 com5-signal-single-stop-1009、
+com5-signal-four-long-scene-stop-1009、com5-signal-four-short-stop-1009、
+com5-signal-short-loop-failure-state-1009 的有界日志。
+
 ## 完成标签发布门禁：未通过
 
 本次整理前执行 Loader、Runtime、DRM 和原生栈解码回归，合计 346 项通过。
