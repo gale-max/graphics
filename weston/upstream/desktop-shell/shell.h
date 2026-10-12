@@ -199,6 +199,8 @@ struct desktop_shell {
 	struct exposay exposay;
 
 	bool allow_zap;
+	bool test_glmark_grid;
+	unsigned int test_grid_next;
 	uint32_t binding_modifier;
 	uint32_t exposay_modifier;
 	enum animation_type win_animation_type;

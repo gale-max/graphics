@@ -11,7 +11,8 @@ from sanitize_elf_rpath import sanitize_elf_rpath
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE = ROOT.parents[2]
-TOOLCHAIN = WORKSPACE / "tools/toolchains/aarch64-none-linux-gnu/bin"
+TOOLCHAIN = Path(os.environ.get("LUNA_GRAPHICS_TOOLCHAIN",
+                               str(WORKSPACE / "tools/toolchains/aarch64-none-linux-gnu/bin")))
 SDK_ROOT = Path(os.environ.get("LUNA_GRAPHICS_SDK", "D:/luna-sdk/qt5-5.15.19/staging"))
 STAGE = ROOT / "stage"
 BUILD = ROOT / "build/weston-armv8-product"
@@ -176,6 +177,8 @@ def package_products(output: Path) -> None:
         xkb_output / "rules",
         dirs_exist_ok=True,
     )
+    for config in ("weston.ini", "weston-grid.ini"):
+        shutil.copy2(ROOT / config, output / config)
     for product in output.iterdir():
         if product.is_file():
             sanitize_elf_rpath(product)

@@ -3367,13 +3367,6 @@ drm_public int drmGetNodeTypeFromFd(int fd)
     maj = major(sbuf.st_rdev);
     min = minor(sbuf.st_rdev);
 
-#ifdef LUNA_GRAPHICS
-    fprintf(stderr,
-            "libdrm node: fd=%d mode=0x%lx rdev=0x%lx major=%d minor=%d\n",
-            fd, (unsigned long)sbuf.st_mode, (unsigned long)sbuf.st_rdev,
-            maj, min);
-#endif
-
     if (!drmNodeIsDRM(maj, min) || !S_ISCHR(sbuf.st_mode)) {
         errno = EINVAL;
         return -1;

@@ -124,6 +124,8 @@ struct shell_surface {
 	} fullscreen;
 
 	struct weston_transform workspace_transform;
+	struct weston_transform test_grid_transform;
+	bool test_grid_applied;
 
 	struct weston_output *fullscreen_output;
 	struct weston_output *output;
@@ -479,6 +481,8 @@ shell_configuration(struct desktop_shell *shell)
 	weston_config_section_get_bool(section,
 				       "allow-zap", &allow_zap, true);
 	shell->allow_zap = allow_zap;
+	weston_config_section_get_bool(section, "test-glmark-grid",
+				       &shell->test_glmark_grid, false);
 
 	weston_config_section_get_string(section,
 					 "binding-modifier", &s, "super");
@@ -2517,6 +2521,49 @@ set_position_from_xwayland(struct shell_surface *shsurf)
 #endif
 }
 
+#include "test-grid.h"
+
+/** @brief 可选测试布局：首次映射时只缩放 glmark2 的合成视图，保留输入变换。 */
+static bool
+map_test_grid(struct desktop_shell *shell, struct shell_surface *shsurf)
+{
+    const char *app_id = weston_desktop_surface_get_app_id(shsurf->desktop_surface);
+    struct weston_surface *surface = weston_desktop_surface_get_surface(shsurf->desktop_surface);
+    struct weston_output *output = shsurf->output;
+    struct weston_test_grid_place place;
+    pixman_rectangle32_t area;
+    unsigned int slot;
+
+    if (!shell->test_glmark_grid || !app_id ||
+        strcmp(app_id, "com.github.glmark2.glmark2") != 0) {
+        return false;
+    }
+    if (shsurf->test_grid_applied) {
+        return true;
+    }
+    if (!output) {
+        output = get_default_output(shell->compositor);
+    }
+    if (!output) {
+        return false;
+    }
+    get_output_work_area(shell, output, &area);
+    slot = shell->test_grid_next % 8U;
+    if (!weston_test_grid_calculate(area.width, area.height,
+                                   surface->width, surface->height, slot, &place)) {
+        return false;
+    }
+    shell->test_grid_next++;
+    weston_matrix_init(&shsurf->test_grid_transform.matrix);
+    weston_matrix_scale(&shsurf->test_grid_transform.matrix,
+                        place.scale, place.scale, 1.0f);
+    wl_list_insert(&shsurf->view->geometry.transformation_list,
+                   &shsurf->test_grid_transform.link);
+    shsurf->test_grid_applied = true;
+    weston_view_set_position(shsurf->view, area.x + place.x, area.y + place.y);
+    return true;
+}
+
 static void
 map(struct desktop_shell *shell, struct shell_surface *shsurf,
     int32_t sx, int32_t sy)
@@ -2534,7 +2581,7 @@ map(struct desktop_shell *shell, struct shell_surface *shsurf,
 		set_maximized_position(shell, shsurf);
 	} else if (shsurf->xwayland.is_set) {
 		set_position_from_xwayland(shsurf);
-	} else {
+	} else if (!map_test_grid(shell, shsurf)) {
 		weston_view_set_initial_position(shsurf->view, shell);
 	}
 
