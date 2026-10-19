@@ -159,12 +159,16 @@ pan_kmod_bo_import(struct pan_kmod_dev *dev, int fd, uint32_t flags)
 
    uint32_t handle;
    int ret = drmPrimeFDToHandle(dev->fd, fd, &handle);
-   if (ret)
+   if (ret) {
+      mesa_loge("pan kmod import failed: stage=prime fd=%d ret=%d errno=%d", fd, ret, errno);
       goto err_unlock;
+   }
 
    slot = util_sparse_array_get(&dev->handle_to_bo.array, handle);
-   if (!slot)
+   if (!slot) {
+      mesa_loge("pan kmod import failed: stage=slot handle=%u errno=%d", handle, errno);
       goto err_close_handle;
+   }
 
    if (*slot) {
       if (!pan_kmod_bo_check_import_flags(*slot, flags)) {
@@ -178,7 +182,7 @@ pan_kmod_bo_import(struct pan_kmod_dev *dev, int fd, uint32_t flags)
    } else {
       size_t size = lseek(fd, 0, SEEK_END);
       if (size == 0 || size == (size_t)-1) {
-         mesa_loge("invalid dmabuf size");
+         mesa_loge("pan kmod import failed: stage=size fd=%d size=%zu errno=%d", fd, size, errno);
          goto err_close_handle;
       }
 

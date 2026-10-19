@@ -8,12 +8,16 @@ else
   bison_command = [prog_bison, '-o', '@OUTPUT0@', '-H', '@OUTPUT1@', '@INPUT@']
 endif
 
+if get_option('luna-prebuilt-lexers')
+  mesa_lex = files('../../../../generated/lexers/25.2.8/lex.yy.c')
+else
 mesa_lex = custom_target(
   'mesa_lex',
   input : 'program_lexer.l',
   output : 'lex.yy.c',
   command : [prog_flex, '-o', '@OUTPUT@', '@INPUT@'],
 )
+endif
 
 program_parse_tab = custom_target(
   'program_parse_tab.[ch]',

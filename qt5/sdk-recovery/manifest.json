@@ -1,0 +1,32 @@
+[
+  {
+    "path": "installed-sdk-guide.md",
+    "bytes": 13515,
+    "sha256": "d120b875d7bde49952f48c1f167c1e065b23bd759f7504b373b429539d256d63"
+  },
+  {
+    "path": "scripts/build_sdk_examples.py",
+    "bytes": 1790,
+    "sha256": "8d3429fd32095af5e315f6754945b9ee66618a075d345d2c8ac66a102bc20710"
+  },
+  {
+    "path": "scripts/build_windows_host_tools.py",
+    "bytes": 8880,
+    "sha256": "2ff5b837e71c85e4316e90fa3f076acde028b4aac2cd37d394f4cb6986746df4"
+  },
+  {
+    "path": "scripts/package_windows_sdk.py",
+    "bytes": 13353,
+    "sha256": "306b9ba39206d91fed9e0562ebf8232074bfdcecdce76e1676364cc71658f9ad"
+  },
+  {
+    "path": "scripts/persist_qtcreator_kit.py",
+    "bytes": 1253,
+    "sha256": "c3d8aeafa65f121326fc814f94c94cdbb0090635c642d6c55e2b219effe76c44"
+  },
+  {
+    "path": "scripts/register_qtcreator_kit.ps1",
+    "bytes": 3895,
+    "sha256": "8bda98b175209506dc5ddbdedf603238c8d1c0526b28875a8b02c021af35b32c"
+  }
+]

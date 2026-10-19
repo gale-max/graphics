@@ -19,17 +19,17 @@ def test_grid_geometry(tmp_path):
 int main(void) {
     struct weston_test_grid_place slots[8];
     for (unsigned int i = 0; i < 8; i++) {
-        if (!weston_test_grid_calculate(1920, 1048, 832, 664, i, &slots[i])) return 1;
+        if (!weston_test_grid_calculate(1920, 1048, 832, 664, 2, i, &slots[i])) return 1;
         if (slots[i].scale <= 0 || slots[i].scale > 1) return 2;
         if (slots[i].x < 0 || slots[i].y < 0 || slots[i].x + 832 * slots[i].scale > 1920 || slots[i].y + 664 * slots[i].scale > 1048) return 3;
         for (unsigned int j = 0; j < i; j++) {
             if (slots[i].x < slots[j].x + 832 * slots[j].scale && slots[j].x < slots[i].x + 832 * slots[i].scale && slots[i].y < slots[j].y + 664 * slots[j].scale && slots[j].y < slots[i].y + 664 * slots[i].scale) return 4;
         }
     }
-    if (weston_test_grid_calculate(0, 100, 832, 664, 0, &slots[0])) return 5;
-    if (weston_test_grid_calculate(1920, 1048, 0, 664, 0, &slots[0])) return 6;
+    if (weston_test_grid_calculate(0, 100, 832, 664, 2, 0, &slots[0])) return 5;
+    if (weston_test_grid_calculate(1920, 1048, 0, 664, 2, 0, &slots[0])) return 6;
     struct weston_test_grid_place repeat;
-    if (!weston_test_grid_calculate(1920, 1048, 832, 664, 8, &repeat)) return 7;
+    if (!weston_test_grid_calculate(1920, 1048, 832, 664, 2, 8, &repeat)) return 7;
     if (repeat.x != slots[0].x || repeat.y != slots[0].y) return 8;
     return 0;
 }
@@ -42,3 +42,33 @@ int main(void) {
     subprocess.run(["wsl.exe", "-d", "ubuntu20.04", "--", "gcc", linux(path), "-o", linux(binary)], check=True, capture_output=True)
     result = subprocess.run(["wsl.exe", "-d", "ubuntu20.04", "--", linux(binary)], capture_output=True)
     assert result.returncode == 0, f"grid geometry failed: {result.returncode}"
+
+
+def test_twelve_grid_geometry(tmp_path):
+    header = Path(__file__).parents[1] / "upstream/desktop-shell/test-grid.h"
+    main = r'''
+int main(void) {
+    struct weston_test_grid_place slots[12];
+    for (unsigned int i = 0; i < 12; i++) {
+        if (!weston_test_grid_calculate(1920, 1048, 832, 664, 3, i, &slots[i])) return 1;
+        if (slots[i].scale <= 0 || slots[i].scale > 1) return 2;
+        if (slots[i].x < 0 || slots[i].y < 0 || slots[i].x + 832 * slots[i].scale > 1920 || slots[i].y + 664 * slots[i].scale > 1048) return 3;
+        for (unsigned int j = 0; j < i; j++) {
+            if (slots[i].x < slots[j].x + 832 * slots[j].scale && slots[j].x < slots[i].x + 832 * slots[i].scale && slots[i].y < slots[j].y + 664 * slots[j].scale && slots[j].y < slots[i].y + 664 * slots[i].scale) return 4;
+        }
+    }
+    struct weston_test_grid_place repeat;
+    if (!weston_test_grid_calculate(1920, 1048, 832, 664, 3, 12, &repeat)) return 5;
+    if (repeat.x != slots[0].x || repeat.y != slots[0].y) return 6;
+    if (weston_test_grid_calculate(1920, 1048, 832, 664, 4, 0, &repeat)) return 7;
+    return 0;
+}
+'''
+    path, binary = tmp_path / "grid12.c", tmp_path / "grid12"
+    path.write_text(header.read_text(encoding="utf-8") + main, encoding="utf-8")
+    def linux(p):
+        value = p.resolve().as_posix()
+        return "/mnt/" + value[0].lower() + value[2:]
+    subprocess.run(["wsl.exe", "-d", "ubuntu20.04", "--", "gcc", linux(path), "-o", linux(binary)], check=True, capture_output=True)
+    result = subprocess.run(["wsl.exe", "-d", "ubuntu20.04", "--", linux(binary)], capture_output=True)
+    assert result.returncode == 0, f"twelve grid geometry failed: {result.returncode}"

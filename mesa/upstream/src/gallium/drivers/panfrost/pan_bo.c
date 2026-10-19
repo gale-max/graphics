@@ -491,37 +491,55 @@ struct panfrost_bo *
 panfrost_bo_import(struct panfrost_device *dev, int fd)
 {
    struct panfrost_bo *bo;
+   struct pan_kmod_bo *kmod_bo = NULL;
    ASSERTED int ret;
    unsigned gem_handle;
 
    pthread_mutex_lock(&dev->bo_map_lock);
    ret = drmPrimeFDToHandle(dev->kmod.dev->fd, fd, &gem_handle);
-   assert(!ret);
+   if (ret) {
+      mesa_loge("panfrost import failed: stage=prime fd=%d ret=%d errno=%d", fd, ret, errno);
+      goto err_unlock;
+   }
 
    bo = pan_lookup_bo(dev, gem_handle);
+   if (!bo) {
+      mesa_loge("panfrost import failed: stage=cache fd=%d errno=%d", fd, errno);
+      goto err_unlock;
+   }
 
    if (!bo->dev) {
-      bo->dev = dev;
-      bo->kmod_bo = pan_kmod_bo_import(dev->kmod.dev, fd, 0);
+      kmod_bo = pan_kmod_bo_import(dev->kmod.dev, fd, 0);
+      if (!kmod_bo) {
+         mesa_loge("panfrost import failed: stage=kernel fd=%d errno=%d", fd, errno);
+         goto err_unlock;
+      }
 
       struct pan_kmod_vm_op vm_op = {
          .type = PAN_KMOD_VM_OP_TYPE_MAP,
          .va =
             {
                .start = PAN_KMOD_VM_MAP_AUTO_VA,
-               .size = bo->kmod_bo->size,
+               .size = kmod_bo->size,
             },
          .map =
             {
-               .bo = bo->kmod_bo,
+               .bo = kmod_bo,
                .bo_offset = 0,
             },
       };
 
-      ASSERTED int ret = pan_kmod_vm_bind(
+      ret = pan_kmod_vm_bind(
          dev->kmod.vm, PAN_KMOD_VM_OP_MODE_IMMEDIATE, &vm_op, 1);
-      assert(!ret);
+      if (ret) {
+         mesa_loge("panfrost import failed: stage=bind fd=%d ret=%d errno=%d", fd, ret, errno);
+         pan_kmod_bo_put(kmod_bo);
+         goto err_unlock;
+      }
 
+      /* Publish the cached object only after import and binding succeed. */
+      bo->dev = dev;
+      bo->kmod_bo = kmod_bo;
       bo->ptr.gpu = vm_op.va.start;
       bo->flags = PAN_BO_SHARED;
       p_atomic_set(&bo->refcnt, 1);
@@ -548,6 +566,10 @@ panfrost_bo_import(struct panfrost_device *dev, int fd)
    pthread_mutex_unlock(&dev->bo_map_lock);
 
    return bo;
+
+err_unlock:
+   pthread_mutex_unlock(&dev->bo_map_lock);
+   return NULL;
 }
 
 int

@@ -32,12 +32,16 @@ glsl_parser = custom_target(
   command : bison_command
 )
 
+if get_option('luna-prebuilt-lexers')
+  glsl_lexer_cpp = files('../../../../generated/lexers/25.2.8/glsl_lexer.cpp')
+else
 glsl_lexer_cpp = custom_target(
   'glsl_lexer_cpp',
   input : 'glsl_lexer.ll',
   output : 'glsl_lexer.cpp',
   command : [prog_flex_cpp, '-o', '@OUTPUT@', '@INPUT@'],
 )
+endif
 
 ir_expression_operation_constant_h = custom_target(
   'ir_expression_operation_constant.h',

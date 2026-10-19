@@ -200,6 +200,7 @@ struct desktop_shell {
 
 	bool allow_zap;
 	bool test_glmark_grid;
+	int test_grid_rows;
 	unsigned int test_grid_next;
 	uint32_t binding_modifier;
 	uint32_t exposay_modifier;

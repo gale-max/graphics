@@ -2,6 +2,8 @@
 
 from pathlib import Path
 import os
+import ast
+import configparser
 import shutil
 import subprocess
 import sys
@@ -41,6 +43,7 @@ OPTIONS = (
     "-Ddri-drivers-path=/media/mmcblk1p1/graphics/dri",
     "-Dluna-prebuilt-panfrost=true",
     "-Dluna-prebuilt-wayland=true",
+    "-Dluna-prebuilt-lexers=true",
     "-Dbackend_max_links=1",
 )
 
@@ -137,6 +140,32 @@ def install_target_lexers() -> None:
         os.utime(output, None)
 
 
+def prepare_cross_file() -> Path:
+    """在构建目录生成本副本的 include/pkgconfig 路径，保留工具链配置。"""
+    config = configparser.ConfigParser(interpolation=None)
+    config.read(CROSS_FILE, encoding="utf-8")
+    config["properties"]["pkg_config_libdir"] = repr((ROOT / "pkgconfig").as_posix())
+    compat = (ROOT.parent / "libdrm/include/luna_graphics_compat.h").as_posix()
+    for key in ("c_args", "cpp_args"):
+        args = ast.literal_eval(config["built-in options"][key])
+        config["built-in options"][key] = repr([
+            compat if arg.endswith("graphics/libdrm/include/luna_graphics_compat.h") else arg
+            for arg in args
+        ])
+    path = ROOT / "build/luna-armv8a-local.ini"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as stream:
+        config.write(stream)
+    return path
+
+
+def cross_builtin_options(path: Path) -> list[str]:
+    config = configparser.ConfigParser(interpolation=None)
+    config.read(path, encoding="utf-8")
+    return ["-D" + key + "=" + config["built-in options"][key]
+            for key in ("c_args", "cpp_args")]
+
+
 def main() -> int:
     environment = os.environ.copy()
     environment["PYTHONUTF8"] = "1"
@@ -146,13 +175,22 @@ def main() -> int:
     prepare_host_tools(environment)
     configured = (BUILD / "build.ninja").is_file()
     BUILD.mkdir(parents=True, exist_ok=True)
+    cross_file = prepare_cross_file()
     setup = [
         sys.executable, "-m", "mesonbuild.mesonmain", "setup",
-        str(BUILD), str(SOURCE), "--cross-file", str(CROSS_FILE),
-        *OPTIONS,
+        str(BUILD), str(SOURCE), "--cross-file", str(cross_file),
+        *OPTIONS, *cross_builtin_options(cross_file),
     ]
     if configured:
-        setup.append("--reconfigure")
+        saved = configparser.ConfigParser(interpolation=None)
+        saved.read(BUILD / "meson-private/cmd_line.txt", encoding="utf-8")
+        previous = ast.literal_eval(saved.get("properties", "cross_file", fallback="[]"))
+        if [Path(value).resolve() for value in previous] != [cross_file.resolve()]:
+            if not BUILD.resolve().is_relative_to((ROOT / "build").resolve()):
+                raise RuntimeError("refusing to wipe outside the Mesa build directory")
+            setup.append("--wipe")
+        else:
+            setup.append("--reconfigure")
     run(setup, environment)
     if not GENERATED_MATERIALS.is_dir():
         raise FileNotFoundError(

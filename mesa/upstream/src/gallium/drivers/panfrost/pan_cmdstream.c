@@ -204,6 +204,9 @@ panfrost_create_sampler_state(struct pipe_context *pctx,
                               const struct pipe_sampler_state *cso)
 {
    struct panfrost_sampler_state *so = CALLOC_STRUCT(panfrost_sampler_state);
+   if (!so)
+      return NULL;
+
    so->base = *cso;
 
 #if PAN_ARCH == 7

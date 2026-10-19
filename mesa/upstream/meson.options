@@ -853,3 +853,6 @@ option(
   value : false,
   description : 'Use repository-generated Wayland protocol sources for Luna cross builds',
 )
+
+option('luna-prebuilt-lexers', type : 'boolean', value : false,
+       description : 'Use Linux-target lexer sources bundled by Luna')

@@ -483,6 +483,10 @@ shell_configuration(struct desktop_shell *shell)
 	shell->allow_zap = allow_zap;
 	weston_config_section_get_bool(section, "test-glmark-grid",
 				       &shell->test_glmark_grid, false);
+	weston_config_section_get_int(section, "test-glmark-grid-rows",
+				      &shell->test_grid_rows, 2);
+	if (shell->test_grid_rows != 2 && shell->test_grid_rows != 3)
+		shell->test_grid_rows = 2;
 
 	weston_config_section_get_string(section,
 					 "binding-modifier", &s, "super");
@@ -2548,9 +2552,10 @@ map_test_grid(struct desktop_shell *shell, struct shell_surface *shsurf)
         return false;
     }
     get_output_work_area(shell, output, &area);
-    slot = shell->test_grid_next % 8U;
+    slot = shell->test_grid_next % (4U * (unsigned int)shell->test_grid_rows);
     if (!weston_test_grid_calculate(area.width, area.height,
-                                   surface->width, surface->height, slot, &place)) {
+                                   surface->width, surface->height,
+                                   shell->test_grid_rows, slot, &place)) {
         return false;
     }
     shell->test_grid_next++;

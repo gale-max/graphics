@@ -291,7 +291,8 @@ panfrost_kmod_bo_import(struct pan_kmod_dev *dev, uint32_t handle, size_t size,
       pan_kmod_ioctl(dev->fd, DRM_IOCTL_PANFROST_GET_BO_OFFSET,
                      &get_bo_offset);
    if (ret) {
-      mesa_loge("DRM_IOCTL_PANFROST_GET_BO_OFFSET failed (err=%d)", errno);
+      mesa_loge("panfrost kmod import failed: stage=offset device_fd=%d handle=%u ret=%d errno=%d",
+                dev->fd, handle, ret, errno);
       goto err_free_bo;
    }
 

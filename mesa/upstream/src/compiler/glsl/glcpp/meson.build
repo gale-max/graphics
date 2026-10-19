@@ -21,12 +21,16 @@ glcpp_parse = custom_target(
   command : bison_command
 )
 
+if get_option('luna-prebuilt-lexers')
+  glcpp_lex = files('../../../../../generated/lexers/25.2.8/glcpp-lex.c')
+else
 glcpp_lex = custom_target(
   'glcpp-lex.c',
   input : 'glcpp-lex.l',
   output : 'glcpp-lex.c',
   command : [prog_flex, '-o', '@OUTPUT@', '@INPUT@'],
 )
+endif
 
 glcpp_header_gen_deps = declare_dependency(
   sources : [
