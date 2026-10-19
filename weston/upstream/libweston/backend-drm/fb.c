@@ -177,6 +177,16 @@ drm_fb_create_dumb(struct drm_backend *b, int width, int height,
 	if (fb->map == MAP_FAILED)
 		goto err_add_fb;
 
+#ifdef LUNA_OS
+	/* Helper clients exec their own image and must not inherit KMS mappings. */
+	if (madvise(fb->map, fb->size, MADV_DONTFORK) != 0) {
+		weston_log("failed to exclude kms mapping from fork: %s\n",
+			   strerror(errno));
+		munmap(fb->map, fb->size);
+		goto err_add_fb;
+	}
+#endif
+
 	return fb;
 
 err_add_fb:

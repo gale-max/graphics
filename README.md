@@ -49,6 +49,4 @@ Windows 构建不依赖 WSL，也不依赖开发者本机的 WinFlexBison 安装
 
 ## 固化存储
 
-SD 和 eMMC 的前 200 MiB 作为启动保护区。数据分区起始 LBA 必须不小于
-`409600`（512 字节扇区），禁止对整盘设备执行 `mkfs`。图形资产统一部署到
-数据分区的 `/graphics` 目录，glmark2 的 `data` 目录必须一并部署。
+图形资产统一部署到数据分区的 `/graphics` 目录，glmark2 的 `data` 目录必须一并部署。

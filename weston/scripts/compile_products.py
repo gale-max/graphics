@@ -138,6 +138,12 @@ def run_build() -> None:
     subprocess.run((executable("ninja"), "-C", str(BUILD), "-j", "4"), env=environment, check=True)
 
 
+def normalize_quirks_text(directory: Path) -> None:
+    """Convert only packaged libinput quirks to Linux line endings."""
+    for resource in directory.rglob("*.quirks"):
+        resource.write_bytes(resource.read_bytes().replace(b"\r\n", b"\n"))
+
+
 def package_products(output: Path) -> None:
     """按 Luna 图形资产约定输出稳定的产品名称。"""
     output.mkdir(parents=True, exist_ok=True)
@@ -162,6 +168,9 @@ def package_products(output: Path) -> None:
         output / "share/libinput",
         dirs_exist_ok=True,
     )
+    # libinput strips LF only; Windows checkout CRLF is invalid quirks syntax.
+    # Normalize the packaged text while preserving source and binary assets.
+    normalize_quirks_text(output / "share/libinput")
     xkb_source = ROOT / "dependencies/xkeyboard-config"
     xkb_output = output / "share/X11/xkb"
     for directory in ("compat", "geometry", "keycodes", "symbols", "types"):
