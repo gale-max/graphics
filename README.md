@@ -1,10 +1,14 @@
 # Luna 用户态图形资产
 
+2026-10-20 去除停机排查 trace 的功能版及四小时回归说明见
+[图形功能版回归](docs/FUNCTIONAL_RELEASE_20261020.md)。
+
 ## 交付与复原入口（2026-10-19）
 
 当前 SDK、源码副本、运行包并不是一个可直接搬迁的自包含发行版。
 请先阅读 [SDK 与图形交付整理](docs/SDK_HANDOFF.md)，其中区分已验证编译、
-物理板验收、待补依赖和远端上传清单。`D:/luna-sdk` 是有效开发环境，不能当缓存删除。
+物理板验收、待补依赖和远端上传清单。当前 SDK 位于
+`D:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19`；旧根目录已由用户删除。
 完整运行目录说明见 [RELEASE.md](RELEASE.md)。下面的组件表和命令仅为基础 DRM 路径，
 不覆盖全部 Qt/Wayland/Weston 交付流程。
 
