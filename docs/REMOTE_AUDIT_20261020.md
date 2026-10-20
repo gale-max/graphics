@@ -5,15 +5,19 @@ Audit date: 2026-10-20.
 Scope: only the 33 repositories under the graphics validation copy's os directory.
 The primary Luna checkout and Catboy are excluded from modification/publication.
 
-All 33 origin endpoints answered ls-remote. 21 GitHub upstream endpoints answered;
+Initial probe: all 33 origin endpoints answered ls-remote. 21 GitHub upstream endpoints answered;
 12 returned Repository not found while SSH authenticated as Surest-ok.
 This means missing or inaccessible, not an unconditional proof of nonexistence.
 
-Publication uses fast-forward master updates plus a release tag when possible.
-Diverged/behind master branches are preserved; a separate release branch and tag
-publish this snapshot there. A read probe does not prove a successful push.
+Final publication targets master only, as explicitly requested by the user.
+Diverged master histories are replaced using force-with-lease after retaining
+remote objects under local refs/maintenance/pre-master-publish-20261020.
+The temporary release/graphics-grid16-20261020 branch is removed after verification.
+New GitHub repositories are re-probed; the initial table below is historical.
+A read probe does not prove a successful push.
 
-Release tag: `graphics-grid16-20261020`. The release is initial graphics acceptance, not a claim
+Final tag: `graphics-master-20261020`; the earlier tag is retained unchanged.
+The release is initial graphics acceptance, not a claim
 that the ongoing four-hour test has completed.
 
 | Repository | origin | GitHub upstream |
@@ -54,9 +58,9 @@ that the ongoing four-hour test has completed.
 
 ## Reconstruction
 
-Check out the same `graphics-grid16-20261020` tag in every repository.
+Check out the same `graphics-master-20261020` tag in every repository.
 The integrated repository contains repo.graphics-grid16-20261020.yaml selecting
-release/graphics-grid16-20261020 branches, paired with the immutable release tag.
+master branches, paired with the immutable final tag.
 Catboy's current synchronization code requires a branch, not a bare tag name.
 Verify each branch HEAD against the release tag before claiming an exact snapshot.
 SDK/runtime packages and host collector evidence are separate deliverables;
