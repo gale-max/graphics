@@ -1,12 +1,13 @@
 """为 Weston 生成 Luna Mesa SDK 的 pkg-config 元数据。"""
 
 from pathlib import Path
+import os
 import shutil
 
 
 ROOT = Path(__file__).resolve().parents[1]
 GRAPHICS_ROOT = ROOT.parent
-SDK_ROOT = Path("D:/luna-sdk/qt5-5.15.19/staging")
+SDK_ROOT = Path(os.environ.get("LUNA_GRAPHICS_SDK", str(ROOT.parents[1] / "luna-sdk/qt5-5.15.19/staging")))
 OUTPUT = ROOT / "stage/lib/pkgconfig"
 
 

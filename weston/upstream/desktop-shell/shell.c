@@ -485,7 +485,7 @@ shell_configuration(struct desktop_shell *shell)
 				       &shell->test_glmark_grid, false);
 	weston_config_section_get_int(section, "test-glmark-grid-rows",
 				      &shell->test_grid_rows, 2);
-	if (shell->test_grid_rows != 2 && shell->test_grid_rows != 3)
+	if (shell->test_grid_rows < 2 || shell->test_grid_rows > 4)
 		shell->test_grid_rows = 2;
 
 	weston_config_section_get_string(section,

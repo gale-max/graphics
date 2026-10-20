@@ -24,7 +24,7 @@ weston_test_grid_calculate(int area_width, int area_height,
     float scale_x;
     float scale_y;
 
-    if (!place || width <= 0 || height <= 0 || (rows != 2 && rows != 3)) {
+    if (!place || width <= 0 || height <= 0 || rows < 2 || rows > 4) {
         return 0;
     }
     cell_height = area_height / (float)rows;

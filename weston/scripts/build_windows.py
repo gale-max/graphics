@@ -6,6 +6,7 @@
 """
 
 from pathlib import Path
+import os
 import json
 import shutil
 import subprocess
@@ -13,7 +14,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 MATERIALS = ROOT / "generated/materials.json"
-SDK_ROOT = Path("D:/luna-sdk/qt5-5.15.19/staging")
+SDK_ROOT = Path(os.environ.get("LUNA_GRAPHICS_SDK", str(ROOT.parents[1] / "luna-sdk/qt5-5.15.19/staging")))
 OUTPUT = ROOT / "output"
 PRODUCTS = (
     "weston.elf",

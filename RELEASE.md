@@ -27,8 +27,8 @@ output/
 Qt 示例使用同版本 Windows SDK 的 qmake 构建：
 
 ```powershell
-python qt5/scripts/build_window_examples.py --sdk D:/luna-sdk/qt5-5.15.19 --make <mingw32-make.exe的绝对路径>
-python qt5/scripts/deploy_window_examples.py --sdk D:/luna-sdk/qt5-5.15.19
+python qt5/scripts/build_window_examples.py --sdk D:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19 --make <mingw32-make.exe的绝对路径>
+python qt5/scripts/deploy_window_examples.py --sdk D:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19
 python qt5/scripts/deploy_window_examples.py --fonts-only --font-directory <TTF字体目录>
 ```
 

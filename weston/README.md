@@ -41,6 +41,12 @@ D:\workspace\luna-workspace\catboy\catboy.exe build `
   -f build.yaml -p armv8a-user weston-desktop
 ```
 
+可用 `LUNA_GRAPHICS_SDK` 指向 SDK 的 `staging` 目录、
+`LUNA_GRAPHICS_TOOLCHAIN` 指向匹配工具链的 `bin` 目录。
+默认 SDK 路径为同级工作区 `os/luna-sdk/qt5-5.15.19/staging`，
+不再依赖已删除的 `D:/luna-sdk` 链接；在没有 SDK 副本的检出目录中必须
+显式设置路径。新位置下本轮 Weston 产品已完成重新构建。
+
 入口产品为 `weston.elf`、`desktop-shell.so`、`weston-desktop-shell.elf`、
 `weston-keyboard.elf`、`drm-backend.so` 和 `gl-renderer.so`。目标运行时前缀
 固定为 `/graphics/weston`，构建产物不会嵌入 Windows 主机路径。输出目录还会
@@ -59,6 +65,18 @@ Luna 启动入口在 `XDG_RUNTIME_DIR` 未设置时使用
 `/graphics/weston/share/X11/xkb` 读取。无需再手工创建运行目录或设置主机构建路径。
 
 ## 验收范围
+
+### glmark2 observation grid
+
+`weston-grid.ini` enables a glmark2-only four-column grid. The supported row
+counts are 2, 3 and 4; the current configuration uses 4 rows for 16 distinct
+positions. Windows are scaled without changing client rendering buffer sizes.
+Slots wrap only after the configured capacity, so workloads exceeding 16 clients
+need a different layout rather than assuming every client remains visible.
+
+The geometry regression checks bounds and pairwise non-overlap for 8, 12 and 16
+slots. Physical acceptance still requires checking all 16 visible windows and
+mouse input on the deployed desktop-shell and configuration.
 
 完成状态以物理板结果为准：desktop-shell 正常启动；至少两个 Qt 窗口可见、
 可移动、可缩放、可切换焦点并能退出重连；Wayland glmark2 全场景无 SG、

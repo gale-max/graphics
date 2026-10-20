@@ -1,5 +1,6 @@
-"""真实 C 布局计算：保持缓冲尺寸，八个缩放窗口在工作区内不重叠。"""
+"""Execute grid geometry for 8, 12 and 16 non-overlapping scaled windows."""
 from pathlib import Path
+import pytest
 import subprocess
 
 
@@ -44,13 +45,14 @@ int main(void) {
     assert result.returncode == 0, f"grid geometry failed: {result.returncode}"
 
 
-def test_twelve_grid_geometry(tmp_path):
+@pytest.mark.parametrize("rows", [3, 4])
+def test_grid_rows_geometry(tmp_path, rows):
     header = Path(__file__).parents[1] / "upstream/desktop-shell/test-grid.h"
     main = r'''
 int main(void) {
-    struct weston_test_grid_place slots[12];
-    for (unsigned int i = 0; i < 12; i++) {
-        if (!weston_test_grid_calculate(1920, 1048, 832, 664, 3, i, &slots[i])) return 1;
+    struct weston_test_grid_place slots[4 * ROWS];
+    for (unsigned int i = 0; i < 4 * ROWS; i++) {
+        if (!weston_test_grid_calculate(1920, 1048, 832, 664, ROWS, i, &slots[i])) return 1;
         if (slots[i].scale <= 0 || slots[i].scale > 1) return 2;
         if (slots[i].x < 0 || slots[i].y < 0 || slots[i].x + 832 * slots[i].scale > 1920 || slots[i].y + 664 * slots[i].scale > 1048) return 3;
         for (unsigned int j = 0; j < i; j++) {
@@ -58,17 +60,17 @@ int main(void) {
         }
     }
     struct weston_test_grid_place repeat;
-    if (!weston_test_grid_calculate(1920, 1048, 832, 664, 3, 12, &repeat)) return 5;
+    if (!weston_test_grid_calculate(1920, 1048, 832, 664, ROWS, 4 * ROWS, &repeat)) return 5;
     if (repeat.x != slots[0].x || repeat.y != slots[0].y) return 6;
-    if (weston_test_grid_calculate(1920, 1048, 832, 664, 4, 0, &repeat)) return 7;
+    if (weston_test_grid_calculate(1920, 1048, 832, 664, 5, 0, &repeat)) return 7;
     return 0;
 }
 '''
     path, binary = tmp_path / "grid12.c", tmp_path / "grid12"
-    path.write_text(header.read_text(encoding="utf-8") + main, encoding="utf-8")
+    path.write_text(f"#define ROWS {rows}\n" + header.read_text(encoding="utf-8") + main, encoding="utf-8")
     def linux(p):
         value = p.resolve().as_posix()
         return "/mnt/" + value[0].lower() + value[2:]
     subprocess.run(["wsl.exe", "-d", "ubuntu20.04", "--", "gcc", linux(path), "-o", linux(binary)], check=True, capture_output=True)
     result = subprocess.run(["wsl.exe", "-d", "ubuntu20.04", "--", linux(binary)], capture_output=True)
-    assert result.returncode == 0, f"twelve grid geometry failed: {result.returncode}"
+    assert result.returncode == 0, f"{4 * rows} slot grid geometry failed: {result.returncode}"
