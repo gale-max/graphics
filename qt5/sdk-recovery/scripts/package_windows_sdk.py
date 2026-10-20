@@ -9,7 +9,10 @@ import subprocess
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
+SCRIPT_DIRECTORY = Path(__file__).resolve().parent
+ROOT = SCRIPT_DIRECTORY.parent
+if ROOT.name == "sdk-recovery":
+    ROOT = ROOT.parent
 REQUIRED_HOST_TOOLS = (
     "qmake.exe", "moc.exe", "uic.exe", "rcc.exe",
     "qmlcachegen.exe", "qmlimportscanner.exe", "lrelease.exe", "lupdate.exe",
@@ -20,6 +23,7 @@ TARGET_DIRECTORIES = (
 )
 DELIVERY_SCRIPTS = (
     "build_windows_host_tools.py",
+    "sdk_paths.py",
     "build_sdk_examples.py",
     "package_windows_sdk.py",
     "persist_qtcreator_kit.py",
@@ -297,7 +301,7 @@ def package(
         render_qt_conf(sdk, sysroot), encoding="utf-8", newline="\n"
     )
 
-    workspace = find_workspace_root(ROOT)
+    workspace = ROOT.parents[2]
     repository = workspace / "os" / "graphics"
     relocate_metadata_tree(sdk / "mkspecs", sdk, workspace, target)
     template = (ROOT / "mkspecs" / "luna-armv8a" / "qmake.conf").read_text(
@@ -326,7 +330,7 @@ def package(
     delivery_scripts = sdk / "scripts"
     delivery_scripts.mkdir(exist_ok=True)
     for name in DELIVERY_SCRIPTS:
-        shutil.copy2(ROOT / "scripts" / name, delivery_scripts / name)
+        shutil.copy2(SCRIPT_DIRECTORY / name, delivery_scripts / name)
     shutil.copy2(ROOT / "sdk.md", sdk / "README.md")
     for source, destination in DELIVERY_EXAMPLE_TREES:
         source_path = ROOT / source
@@ -341,9 +345,9 @@ def package(
 
 
 def main() -> None:
-    workspace = find_workspace_root(ROOT)
+    workspace = ROOT.parents[2]
     parser = argparse.ArgumentParser()
-    parser.add_argument("--sdk", type=Path, default=Path("D:/luna-sdk/qt5-5.15.19"))
+    parser.add_argument("--sdk", type=Path, default=Path(os.environ.get("LUNA_GRAPHICS_SDK", str(ROOT.parent.parent / "luna-sdk/qt5-5.15.19/staging"))).parent)
     parser.add_argument(
         "--target", type=Path,
         default=Path(
@@ -361,7 +365,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--toolchain", type=Path,
-        default=workspace / "tools" / "toolchains" / "aarch64-none-linux-gnu" / "bin",
+        default=Path(os.environ.get("LUNA_GRAPHICS_TOOLCHAIN", str(workspace / "tools/toolchains/aarch64-none-linux-gnu/bin"))),
     )
     parser.add_argument(
         "--sysroot", type=Path,

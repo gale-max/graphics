@@ -1,6 +1,7 @@
 """上传两个窗口示例到 eMMC，并通过 FTP 回读校验内容。"""
 
 import argparse
+import os
 from ftplib import FTP
 from ftplib import error_perm
 import hashlib
@@ -13,7 +14,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="192.168.137.11")
     parser.add_argument("--directory", default="qt5/bin")
-    parser.add_argument("--sdk", type=Path, default=Path("D:/luna-sdk/qt5-5.15.19"))
+    parser.add_argument("--sdk", type=Path, default=Path(os.environ.get("LUNA_GRAPHICS_SDK", str(ROOT.parent.parent / "luna-sdk/qt5-5.15.19/staging"))).parent)
     parser.add_argument("--font-directory", type=Path,
                         help="将指定目录中的 TTF 字体部署到 qt5/lib/fonts")
     parser.add_argument("--fonts-only", action="store_true",

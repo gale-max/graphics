@@ -14,7 +14,7 @@ GRAPHICS = ROOT.parent
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--sdk", type=Path, default=Path("D:/luna-sdk/qt5-5.15.19"))
+    parser.add_argument("--sdk", type=Path, default=Path(os.environ.get("LUNA_GRAPHICS_SDK", str(ROOT.parent.parent / "luna-sdk/qt5-5.15.19/staging"))).parent)
     parser.add_argument("--make", type=Path, required=True)
     args = parser.parse_args()
     qmake = args.sdk / "bin/qmake.exe"
@@ -48,8 +48,10 @@ def main():
         original = "D:/workspace/luna-workspace/os"
         text = text.replace(original + "/graphics/qt5/build/qt5-armv8a/staging/lib",
                             (args.sdk / "staging/lib").as_posix())
-        text = text.replace(original + "/", ROOT.parents[1].as_posix() + "/")
-        if original in text:
+        # Relocate source metadata only; the explicit SDK may live under original.
+        text = text.replace(original + "/graphics/", GRAPHICS.as_posix() + "/")
+        non_sdk_text = text.replace(args.sdk.as_posix().rstrip("/") + "/", "")
+        if original in non_sdk_text:
             raise RuntimeError("生成的 Makefile 仍依赖原 OS")
         makefile.write_text(text, encoding="utf-8")
         subprocess.run([str(args.make), "-s", "clean"], cwd=build,

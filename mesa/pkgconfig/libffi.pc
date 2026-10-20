@@ -1,4 +1,4 @@
-prefix=D:/luna-sdk/qt5-5.15.19/staging
+prefix=D:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19/staging
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 toolexeclibdir=${libdir}/../lib64
@@ -7,5 +7,5 @@ includedir=${prefix}/include
 Name: libffi
 Description: Library supporting Foreign Function Interfaces
 Version: 3.4.6
-Libs: -LD:/luna-sdk/qt5-5.15.19/staging/lib -lffi
-Cflags: -ID:/luna-sdk/qt5-5.15.19/staging/include
+Libs: -LD:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19/staging/lib -lffi
+Cflags: -ID:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19/staging/include

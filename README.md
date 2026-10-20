@@ -6,13 +6,16 @@
 | --- | --- | --- |
 | RK3399 Panfrost / DRM / GBM / EGL / GLES | NanoPC-T4 上 Weston 与 glmark2 运行 | 不代表其他 GPU 或 BSP 已验收 |
 | Weston 桌面、鼠标、16 窗口 | 用户确认 4×4 独立可见、模型运动和鼠标正常 | 不将客户端数量或 ioctl 返回当作视觉证据 |
-| glmark2 全场景并发 | 16 客户端四小时长测正在进行 | 本轮尚未完成，不能写成长测通过 |
+| RT / ThreadX 后端图形运行 | 两个后端分别完成 16 客户端 10 分钟测试，人工确认 4×4 运动及鼠标正常，16 PID 均回收 | 可选后端，不表示双内核同时运行，也不替代长测 |
 | Qt 应用构建 / SDK 搬迁 | 新位置 SDK 与独立副本构建证据见 SDK_HANDOFF | 不等同于干净机器从零构建完整 SDK |
 | timerfd 与资源回收 | 常数时间推进、读后重装及定向主机/板测回归 | 保留真实错误，不能声称所有定时器场景无故障 |
 | 日志和 ps | 内核日志带时间/级别；ps 显示 TID、当前 CPU、允许核范围 | shell 回执和应用 stdout 不强加内核日志头 |
 
 最新部署组合、图形模块哈希和可视验收见
 [4×4 与 ps 上板记录](docs/GRID16_VALIDATION_20261020.md)。
+本轮 RT / ThreadX 镜像哈希、glibc 测试和短测结束证据见
+[双后端验收](docs/GLIBC_RT_MIGRATION_20261020.md)，对应代码提交见
+[跨仓库提交清单](docs/DUAL_BACKEND_COMMITS_20261020.md)。
 日志接口和已移除阶段探针见
 [日志清理说明](docs/LOGGING_CLEANUP_20261020.md)。
 硬件 WDT 默认不启用；主机压测 guardian 默认保留 85°C 温度保护。

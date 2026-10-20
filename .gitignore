@@ -12,3 +12,5 @@ compile_commands.json
 
 !artifacts/
 !artifacts/**
+/tests/.tmp/
+/*/build.local.yaml

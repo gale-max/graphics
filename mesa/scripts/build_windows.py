@@ -47,7 +47,11 @@ OPTIONS = (
     "-Dbackend_max_links=1",
 )
 
-QT_SDK_STAGING = Path(r"D:/luna-sdk/qt5-5.15.19/staging")
+QT_SDK_STAGING = Path(os.environ.get(
+    "LUNA_GRAPHICS_SDK", str(ROOT.parents[1] / "luna-sdk/qt5-5.15.19/staging")))
+TOOLCHAIN = Path(os.environ.get(
+    "LUNA_GRAPHICS_TOOLCHAIN",
+    str(ROOT.parents[2] / "tools/toolchains/aarch64-none-linux-gnu/bin")))
 PKGCONFIG_DIRECTORY = ROOT / "pkgconfig"
 WAYLAND_PACKAGES = (
     "wayland-client.pc",
@@ -144,12 +148,16 @@ def prepare_cross_file() -> Path:
     """在构建目录生成本副本的 include/pkgconfig 路径，保留工具链配置。"""
     config = configparser.ConfigParser(interpolation=None)
     config.read(CROSS_FILE, encoding="utf-8")
+    for key, name in (("c", "gcc"), ("cpp", "g++"), ("ar", "ar"), ("strip", "strip")):
+        config["binaries"][key] = repr((TOOLCHAIN / f"aarch64-none-linux-gnu-{name}.exe").as_posix())
     config["properties"]["pkg_config_libdir"] = repr((ROOT / "pkgconfig").as_posix())
     compat = (ROOT.parent / "libdrm/include/luna_graphics_compat.h").as_posix()
     for key in ("c_args", "cpp_args"):
         args = ast.literal_eval(config["built-in options"][key])
         config["built-in options"][key] = repr([
-            compat if arg.endswith("graphics/libdrm/include/luna_graphics_compat.h") else arg
+            compat if arg.endswith("graphics/libdrm/include/luna_graphics_compat.h")
+            else "-I" + (QT_SDK_STAGING / "include").as_posix()
+            if arg == "-I@GRAPHICS_SDK@/include" else arg
             for arg in args
         ])
     path = ROOT / "build/luna-armv8a-local.ini"
@@ -175,7 +183,10 @@ def main() -> int:
     prepare_host_tools(environment)
     configured = (BUILD / "build.ninja").is_file()
     BUILD.mkdir(parents=True, exist_ok=True)
+    local_cross = ROOT / "build/luna-armv8a-local.ini"
+    previous_cross = local_cross.read_text(encoding="utf-8") if local_cross.is_file() else None
     cross_file = prepare_cross_file()
+    cross_changed = previous_cross != cross_file.read_text(encoding="utf-8")
     setup = [
         sys.executable, "-m", "mesonbuild.mesonmain", "setup",
         str(BUILD), str(SOURCE), "--cross-file", str(cross_file),
@@ -185,7 +196,7 @@ def main() -> int:
         saved = configparser.ConfigParser(interpolation=None)
         saved.read(BUILD / "meson-private/cmd_line.txt", encoding="utf-8")
         previous = ast.literal_eval(saved.get("properties", "cross_file", fallback="[]"))
-        if [Path(value).resolve() for value in previous] != [cross_file.resolve()]:
+        if cross_changed or [Path(value).resolve() for value in previous] != [cross_file.resolve()]:
             if not BUILD.resolve().is_relative_to((ROOT / "build").resolve()):
                 raise RuntimeError("refusing to wipe outside the Mesa build directory")
             setup.append("--wipe")

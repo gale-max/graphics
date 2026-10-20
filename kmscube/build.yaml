@@ -42,4 +42,7 @@ targets:
         ../mesa/build/mesa-25.2.8/src/mapi/es2api/libGLESv2.so.2.0.0
         ../mesa/build/mesa-25.2.8/src/mapi/shared-glapi/libglapi.a
         ../mesa/build/mesa-25.2.8/subprojects/expat-2.5.0/libexpat.so.1.8.10
+        -L../../luna-sdk/qt5-5.15.19/staging/lib
+        -lwayland-client -lwayland-server
+        -Wl,-rpath-link,../../luna-sdk/qt5-5.15.19/staging/lib
         -Wl,-rpath,$ORIGIN -lm -pthread

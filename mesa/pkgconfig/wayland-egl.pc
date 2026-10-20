@@ -1,4 +1,4 @@
-prefix=D:/luna-sdk/qt5-5.15.19/staging
+prefix=D:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19/staging
 includedir=${prefix}/include
 libdir=${prefix}/lib
 
@@ -6,5 +6,5 @@ Name: wayland-egl
 Description: Frontend wayland-egl library
 Version: 18.1.0
 Requires: wayland-client
-Libs: -LD:/luna-sdk/qt5-5.15.19/staging/lib -lwayland-egl
-Cflags: -ID:/luna-sdk/qt5-5.15.19/staging/include
+Libs: -LD:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19/staging/lib -lwayland-egl
+Cflags: -ID:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19/staging/include

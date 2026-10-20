@@ -1,11 +1,19 @@
 param(
-    [string]$SdkRoot = "D:\luna-sdk\qt5-5.15.19",
-    [string]$QtCreatorRoot = "D:\luna-sdk\qt5-5.15.19\tools\QtCreator-20.0.1",
+    [string]$SdkRoot = "",
+    [string]$QtCreatorRoot = "",
     [string]$WorkspaceRoot = "D:\workspace\luna-workspace",
     [string]$SettingsPath = "$env:APPDATA\QtProject\qtcreator"
 )
 
 $ErrorActionPreference = "Stop"
+if (!$SdkRoot) {
+    $SdkRoot = if ($env:LUNA_GRAPHICS_SDK) {
+        Split-Path -Parent $env:LUNA_GRAPHICS_SDK
+    } else {
+        Join-Path $WorkspaceRoot "os\luna-sdk\qt5-5.15.19"
+    }
+}
+if (!$QtCreatorRoot) { $QtCreatorRoot = Join-Path $SdkRoot "tools\QtCreator-20.0.1" }
 $settingsDirectory = $SettingsPath
 if ([string]::IsNullOrWhiteSpace($settingsDirectory)) {
     $settingsDirectory = Join-Path ([Environment]::GetFolderPath("ApplicationData")) `
@@ -15,6 +23,7 @@ if ([string]::IsNullOrWhiteSpace($settingsDirectory)) {
 $sdkTool = Join-Path $QtCreatorRoot "sdktool.exe"
 $qmake = Join-Path $SdkRoot "bin\qmake.exe"
 $toolchain = Join-Path $WorkspaceRoot "tools\toolchains\aarch64-none-linux-gnu\bin"
+if ($env:LUNA_GRAPHICS_TOOLCHAIN) { $toolchain = $env:LUNA_GRAPHICS_TOOLCHAIN }
 $sysroot = Join-Path $WorkspaceRoot "tools\toolchains\aarch64-none-linux-gnu\aarch64-none-linux-gnu\libc"
 $gcc = Join-Path $toolchain "aarch64-none-linux-gnu-gcc.exe"
 $gxx = Join-Path $toolchain "aarch64-none-linux-gnu-g++.exe"
@@ -83,12 +92,13 @@ Invoke-SdkTool -AllowFailure -Arguments @(
 )
 
 # sdktool 默认把新增 Kit 标记成临时 SDK 项，Qt Creator 启动时会清理它。
-[void][System.IO.Directory]::CreateDirectory("D:\luna-sdk\qt5-5.15.19\config-temp")
-Copy-Item -LiteralPath "$settingsDirectory\profiles.xml" -Destination "D:\luna-sdk\qt5-5.15.19\config-temp\profiles.xml" -Force
-python "$PSScriptRoot\persist_qtcreator_kit.py" --settings "D:\luna-sdk\qt5-5.15.19\config-temp" --kit-id $kitId
+$configTemp = Join-Path $SdkRoot "config-temp"
+[void][System.IO.Directory]::CreateDirectory($configTemp)
+Copy-Item -LiteralPath "$settingsDirectory\profiles.xml" -Destination "$configTemp\profiles.xml" -Force
+python "$PSScriptRoot\persist_qtcreator_kit.py" --settings $configTemp --kit-id $kitId
 if ($LASTEXITCODE -ne 0) {
     throw "无法固化 Luna ARMv8A Kit"
 }
-Copy-Item -LiteralPath "D:\luna-sdk\qt5-5.15.19\config-temp\profiles.xml" -Destination "$settingsDirectory\profiles.xml" -Force
+Copy-Item -LiteralPath "$configTemp\profiles.xml" -Destination "$settingsDirectory\profiles.xml" -Force
 
 Write-Output "Luna ARMv8A Qt Creator Kit 已注册到 $settingsDirectory"

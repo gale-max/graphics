@@ -133,7 +133,7 @@ targets:
         ../mesa/build/mesa-25.2.8/src/mapi/es2api/libGLESv2.so.2.0.0
         ../mesa/build/mesa-25.2.8/src/mapi/shared-glapi/libglapi.a
         ../mesa/build/mesa-25.2.8/subprojects/expat-2.5.0/libexpat.so.1.8.10
-        -Wl,-rpath-link,D:/luna-sdk/qt5-5.15.19/staging/lib
+        -Wl,-rpath-link,../../luna-sdk/qt5-5.15.19/staging/lib
         -Wl,-rpath,$ORIGIN -lm -ldl -lpthread
 
   glmark2-wayland:
@@ -152,7 +152,7 @@ targets:
       includes:
         - include
         - generated
-        - D:/luna-sdk/qt5-5.15.19/staging/include
+        - '../../luna-sdk/qt5-5.15.19/staging/include'
         - upstream/src
         - upstream/src/libmatrix
         - upstream/src/scene-ideas
@@ -181,14 +181,14 @@ targets:
         - ../libdrm/build/libdrm/armv8a-user
       links: [glmark2-png, glmark2-jpeg, glmark2-zlib, drm]
       linker_flags: >-
-        D:/luna-sdk/qt5-5.15.19/staging/lib/libwayland-client.so
-        D:/luna-sdk/qt5-5.15.19/staging/lib/libwayland-cursor.so
-        D:/luna-sdk/qt5-5.15.19/staging/lib/libwayland-egl.so
+        ../../luna-sdk/qt5-5.15.19/staging/lib/libwayland-client.so
+        ../../luna-sdk/qt5-5.15.19/staging/lib/libwayland-cursor.so
+        ../../luna-sdk/qt5-5.15.19/staging/lib/libwayland-egl.so
         ../mesa/build/mesa-25.2.8/src/gbm/libgbm.so.1.0.0
         ../mesa/build/mesa-25.2.8/src/egl/libEGL.so.1.0.0
         ../mesa/build/mesa-25.2.8/src/gallium/targets/dri/libgallium-25.2.8.so
         ../mesa/build/mesa-25.2.8/src/mapi/es2api/libGLESv2.so.2.0.0
         ../mesa/build/mesa-25.2.8/src/mapi/shared-glapi/libglapi.a
         ../mesa/build/mesa-25.2.8/subprojects/expat-2.5.0/libexpat.so.1.8.10
-        -Wl,-rpath-link,D:/luna-sdk/qt5-5.15.19/staging/lib
+        -Wl,-rpath-link,../../luna-sdk/qt5-5.15.19/staging/lib
         -Wl,-rpath,$ORIGIN -lm -ldl -lpthread
