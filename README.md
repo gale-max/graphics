@@ -79,12 +79,15 @@ python -m pytest graphics/tests -q
 各工程的 `build/` 仅保存中间文件，不纳入版本管理。完成构建后运行：
 
 ```powershell
-python graphics/scripts/package_artifacts.py
+python graphics/scripts/package_artifacts.py --output-root D:/workspace/codex-workspace/graphics-release/armv8a-user --ar D:/workspace/luna-workspace/tools/toolchains/aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-ar.exe
 ```
 
 脚本将 Mesa 运行库、glmark2、modetest 和 kmscube 收集到
-`artifacts/armv8a-user/`，并生成包含源码 revision、文件大小和 SHA256 的
-`manifest.json`。Mesa 的 Panfrost 主机生成材料和目标 lexer 分别固化在
+指定的源码树外目录，并生成包含上游 revision、打包时 checkout 状态、文件格式、
+大小和 SHA256 的 `manifest.json`。输出目录必须为空；打包前检查完整输入集，
+复制后校验哈希。Mesa 的 thin archive 会展开为包含实际对象的普通静态库，
+清单同时记录成员哈希，交付后不再引用构建目录。该清单证明产物复制完整性，不替代构建来源与运行验收记录。
+历史预编译产物不再纳入源码仓库，可从 Git 历史恢复。Mesa 的 Panfrost 主机生成材料和目标 lexer 分别固化在
 `mesa/generated/panfrost/25.2.8/` 与 `mesa/generated/lexers/25.2.8/`，常规
 Windows 构建不依赖 WSL，也不依赖开发者本机的 WinFlexBison 安装路径。
 

@@ -28,7 +28,8 @@ def test_generated_makefile_preserves_explicit_sdk_and_relocates_sources(monkeyp
         source = module.ROOT / "upstream/qtbase-everywhere-src-5.15.19/examples/widgets/widgets" / name
         source.mkdir(parents=True)
         (source / (name + ".pro")).touch()
-    monkeypatch.setattr(sys, "argv", [str(SCRIPT), "--sdk", str(sdk), "--make", str(make)])
+    monkeypatch.setattr(sys, "argv", [str(SCRIPT), "--sdk", str(sdk), "--make", str(make),
+                                     "--output-root", str(tmp_path / 'artifacts')])
     checked = []
 
     def run(arguments, cwd, **kwargs):
@@ -59,3 +60,27 @@ def test_generated_makefile_preserves_explicit_sdk_and_relocates_sources(monkeyp
         return
     module.main()
     assert len(checked) == 4
+    assert (tmp_path / 'artifacts/output/manifest.json').is_file()
+    assert not (module.ROOT / 'build').exists()
+    assert not (module.ROOT / 'output').exists()
+
+
+def test_formal_workspace_is_a_valid_explicit_source_root():
+    spec = importlib.util.spec_from_file_location('window_paths_formal', SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    graphics = Path(ORIGINAL + '/graphics')
+    sdk = Path(ORIGINAL + '/luna-sdk/qt5-5.15.19')
+    text = f'SOURCES = {graphics.as_posix()}/qt5/upstream/example.cpp\n'
+    assert module.relocate_makefile(text, sdk, graphics) == text
+
+
+@pytest.mark.parametrize('destination', ['source', 'sdk'])
+def test_outputs_cannot_overwrite_sources_or_sdk(tmp_path, destination):
+    spec = importlib.util.spec_from_file_location('window_paths_safe', SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    graphics, sdk = tmp_path / 'graphics', tmp_path / 'sdk'
+    output = (graphics if destination == 'source' else sdk) / 'build'
+    with pytest.raises(ValueError, match='output'):
+        module.validate_output(output, graphics, sdk)

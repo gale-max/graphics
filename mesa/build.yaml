@@ -11,7 +11,17 @@ recipes:
         command: python
         args: [scripts/build_windows.py]
 
+  mesa_qemu_windows_build:
+    description: 构建独立 QEMU VirGL 和 Softpipe 运行库，需设置 LUNA_MESA_QEMU_OUTPUT
+    steps:
+      - name: build_mesa_qemu
+        command: python
+        args: [scripts/build_windows.py, --profile, qemu]
+
 targets:
   mesa-panfrost:
     build:
       recipe: mesa_windows_build
+  mesa-qemu:
+    build:
+      recipe: mesa_qemu_windows_build

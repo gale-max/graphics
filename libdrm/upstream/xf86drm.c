@@ -1027,7 +1027,8 @@ static int drmGetMinorBase(int type)
 static int drmGetMinorType(int major, int minor)
 {
 #ifdef LUNA_GRAPHICS
-    (void)major;
+    if (major != DRM_MAJOR)
+        return -1;
     if (minor >= 128 && minor < 128 + DRM_MAX_MINOR) {
         return DRM_NODE_RENDER;
     }
@@ -3290,7 +3291,11 @@ drm_public int drmIsMaster(int fd)
 
 drm_public char *drmGetDeviceNameFromFd(int fd)
 {
-#ifdef __FreeBSD__
+#if defined(LUNA_GRAPHICS)
+    int type = drmGetNodeTypeFromFd(fd);
+
+    return type < 0 ? NULL : drmGetMinorNameForFD(fd, type);
+#elif defined(__FreeBSD__)
     struct stat sbuf;
     int maj, min;
     int nodetype;
@@ -3331,9 +3336,7 @@ drm_public char *drmGetDeviceNameFromFd(int fd)
 static bool drmNodeIsDRM(int maj, int min)
 {
 #ifdef LUNA_GRAPHICS
-    (void)maj;
-    return (min >= 0 && min < DRM_MAX_MINOR) ||
-           (min >= 128 && min < 128 + DRM_MAX_MINOR);
+    return drmGetMinorType(maj, min) >= 0;
 #elif defined(__linux__)
     char path[64];
     struct stat sbuf;
@@ -3420,9 +3423,53 @@ drm_public int drmCloseBufferHandle(int fd, uint32_t handle)
     return drmIoctl(fd, DRM_IOCTL_GEM_CLOSE, &args);
 }
 
+#ifdef LUNA_GRAPHICS
+/* Luna registers DRM nodes with Linux-compatible st_rdev values.  Verify the
+ * path as well: an open fd can outlive removal or replacement of its node. */
+static int drmLunaNodePath(dev_t rdev, char node[PATH_MAX])
+{
+    struct stat sbuf;
+    int type = drmGetMinorType(major(rdev), minor(rdev));
+
+    if (type < 0)
+        return -EINVAL;
+
+    snprintf(node, PATH_MAX, drmGetDeviceName(type), DRM_DIR_NAME, minor(rdev));
+    if (stat(node, &sbuf))
+        return -errno;
+    if (!S_ISCHR(sbuf.st_mode) || sbuf.st_rdev != rdev)
+        return -ENODEV;
+    return 0;
+}
+#endif
+
 static char *drmGetMinorNameForFD(int fd, int type)
 {
-#ifdef __linux__
+#ifdef LUNA_GRAPHICS
+    struct stat sbuf;
+    char node[PATH_MAX];
+    int ret;
+
+    if (fstat(fd, &sbuf))
+        return NULL;
+    if (!S_ISCHR(sbuf.st_mode)) {
+        errno = EINVAL;
+        return NULL;
+    }
+    ret = drmLunaNodePath(sbuf.st_rdev, node);
+    if (ret) {
+        errno = -ret;
+        return NULL;
+    }
+    /* Primary and render minors are allocated independently.  Until Luna
+     * exposes a shared device identity, neither minor offsets nor driver
+     * names can safely identify a sibling node (including on multi-GPU). */
+    if (type != drmGetMinorType(major(sbuf.st_rdev), minor(sbuf.st_rdev))) {
+        errno = ENOTSUP;
+        return NULL;
+    }
+    return strdup(node);
+#elif defined(__linux__)
     DIR *sysdir;
     struct dirent *ent;
     struct stat sbuf;
@@ -4592,7 +4639,32 @@ drm_device_has_rdev(drmDevicePtr device, dev_t find_rdev)
  */
 drm_public int drmGetDeviceFromDevId(dev_t find_rdev, uint32_t flags, drmDevicePtr *device)
 {
-#ifdef __OpenBSD__
+#ifdef LUNA_GRAPHICS
+    drmDevicePtr dev;
+    char node[PATH_MAX] = {0};
+    char *addr;
+    int type, ret;
+
+    if (!device || drm_device_validate_flags(flags))
+        return -EINVAL;
+    ret = drmLunaNodePath(find_rdev, node);
+    if (ret)
+        return ret;
+    type = drmGetMinorType(major(find_rdev), minor(find_rdev));
+    dev = drmDeviceAlloc(type, node, sizeof(drmPlatformBusInfo), 0, &addr);
+    if (!dev)
+        return -ENOMEM;
+
+    /* This is a node identity, not a fabricated primary/render association.
+     * Advertise only the verified node until a kernel parent id is available. */
+    dev->bustype = DRM_BUS_PLATFORM;
+    dev->businfo.platform = (drmPlatformBusInfoPtr)addr;
+    snprintf(dev->businfo.platform->fullname,
+             sizeof(dev->businfo.platform->fullname),
+             "/luna/drm/%u:%u", major(find_rdev), minor(find_rdev));
+    *device = dev;
+    return 0;
+#elif defined(__OpenBSD__)
     /*
      * DRI device nodes on OpenBSD are not in their own directory, they reside
      * in /dev along with a large number of statically generated /dev nodes.
@@ -4745,60 +4817,15 @@ drm_public int drmGetNodeTypeFromDevId(dev_t devid)
 drm_public int drmGetDevice2(int fd, uint32_t flags, drmDevicePtr *device)
 {
 #ifdef LUNA_GRAPHICS
-    drmVersionPtr version;
-    drmDevicePtr dev;
-    const char *dev_name;
-    char node[PATH_MAX];
-    char *addr;
-    int node_type;
-    int minor_number;
-    int length;
+    struct stat sbuf;
 
     if (drm_device_validate_flags(flags) || fd == -1 || device == NULL)
         return -EINVAL;
-
-    version = drmGetVersion(fd);
-    if (!version)
-        return -ENODEV;
-
-    node_type = version->name && strcmp(version->name, "panfrost") == 0 ?
-                DRM_NODE_RENDER : DRM_NODE_PRIMARY;
-    minor_number = node_type == DRM_NODE_RENDER ? 128 : 0;
-    drmFreeVersion(version);
-
-    dev_name = drmGetDeviceName(node_type);
-    if (!dev_name)
+    if (fstat(fd, &sbuf))
+        return -errno;
+    if (!S_ISCHR(sbuf.st_mode))
         return -EINVAL;
-
-    length = snprintf(node, sizeof(node), dev_name, DRM_DIR_NAME,
-                      minor_number);
-    if (length < 0 || length >= (int)sizeof(node))
-        return -ENAMETOOLONG;
-
-    dev = drmDeviceAlloc((unsigned int)node_type, node,
-                         sizeof(drmPlatformBusInfo), 0U, &addr);
-    if (!dev)
-        return -ENOMEM;
-
-    /*
-     * Rockchip KMS 主节点与 Panfrost render 节点共同组成一个图形设备。
-     * Mesa kmsro 会从 card0 查询 render 节点，因此 Luna 的设备描述必须
-     * 与 Linux libdrm 一样同时公布两类节点，不能按当前 fd 割裂设备。
-     */
-    snprintf(dev->nodes[DRM_NODE_PRIMARY], drmGetMaxNodeName(),
-             DRM_DEV_NAME, DRM_DIR_NAME, 0);
-    snprintf(dev->nodes[DRM_NODE_RENDER], drmGetMaxNodeName(),
-             DRM_RENDER_DEV_NAME, DRM_DIR_NAME, 128);
-    dev->available_nodes = (1 << DRM_NODE_PRIMARY) |
-                           (1 << DRM_NODE_RENDER);
-
-    dev->bustype = DRM_BUS_PLATFORM;
-    dev->businfo.platform = (drmPlatformBusInfoPtr)addr;
-    snprintf(dev->businfo.platform->fullname,
-             sizeof(dev->businfo.platform->fullname),
-             "/luna/drm/platform0");
-    *device = dev;
-    return 0;
+    return drmGetDeviceFromDevId(sbuf.st_rdev, flags, device);
 #else
     struct stat sbuf;
 
@@ -4850,36 +4877,39 @@ drm_public int drmGetDevices2(uint32_t flags, drmDevicePtr devices[],
 {
 #ifdef LUNA_GRAPHICS
     drmDevicePtr dev;
-    char primary[PATH_MAX];
-    char *addr;
+    int type, min, base, ret, count = 0;
 
     if (drm_device_validate_flags(flags))
         return -EINVAL;
-
-    if (devices == NULL)
-        return 1;
-    if (max_devices <= 0)
+    if (devices && max_devices <= 0)
         return 0;
 
-    snprintf(primary, sizeof(primary), DRM_DEV_NAME, DRM_DIR_NAME, 0);
-    dev = drmDeviceAlloc(DRM_NODE_PRIMARY, primary,
-                         sizeof(drmPlatformBusInfo), 0U, &addr);
-    if (!dev)
-        return -ENOMEM;
-
-    snprintf(dev->nodes[DRM_NODE_PRIMARY], drmGetMaxNodeName(),
-             DRM_DEV_NAME, DRM_DIR_NAME, 0);
-    snprintf(dev->nodes[DRM_NODE_RENDER], drmGetMaxNodeName(),
-             DRM_RENDER_DEV_NAME, DRM_DIR_NAME, 128);
-    dev->available_nodes = (1 << DRM_NODE_PRIMARY) |
-                           (1 << DRM_NODE_RENDER);
-    dev->bustype = DRM_BUS_PLATFORM;
-    dev->businfo.platform = (drmPlatformBusInfoPtr)addr;
-    snprintf(dev->businfo.platform->fullname,
-             sizeof(dev->businfo.platform->fullname),
-             "/luna/drm/platform0");
-    devices[0] = dev;
-    return 1;
+    /* No sysfs on Luna.  Enumerate registered nodes rather than inventing a
+     * card0/renderD128 pair.  Node descriptors remain separate because the
+     * ABI does not yet expose their parent device identity. */
+    for (type = DRM_NODE_PRIMARY; type < DRM_NODE_MAX; type++) {
+        base = drmGetMinorBase(type);
+        if (base < 0)
+            continue;
+        for (min = base; min < base + DRM_MAX_MINOR; min++) {
+            ret = drmGetDeviceFromDevId(makedev(DRM_MAJOR, min), flags, &dev);
+            if (ret == -ENOMEM) {
+                if (devices)
+                    drmFreeDevices(devices, count);
+                return ret;
+            }
+            if (ret)
+                continue;
+            if (devices)
+                devices[count] = dev;
+            else
+                drmFreeDevice(&dev);
+            count++;
+            if (devices && count == max_devices)
+                return count;
+        }
+    }
+    return count;
 #else
     drmDevicePtr local_devices[MAX_DRM_NODES];
     drmDevicePtr device;
@@ -4954,7 +4984,9 @@ drm_public int drmGetDevices(drmDevicePtr devices[], int max_devices)
 
 drm_public char *drmGetDeviceNameFromFd2(int fd)
 {
-#ifdef __linux__
+#ifdef LUNA_GRAPHICS
+    return drmGetDeviceNameFromFd(fd);
+#elif defined(__linux__)
     struct stat sbuf;
     char path[PATH_MAX + 1], *value;
     unsigned int maj, min;

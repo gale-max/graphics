@@ -18,6 +18,7 @@ def test_local_cross_file_does_not_reference_original_workspace(tmp_path):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     module.ROOT = tmp_path / 'graphics/mesa'
+    module.QT_SDK_STAGING = tmp_path / 'luna-sdk/qt5-5.15.19/staging'
     module.BUILD = tmp_path / 'build'
     module.BUILD.mkdir()
     path = module.prepare_cross_file()
@@ -27,6 +28,7 @@ def test_local_cross_file_does_not_reference_original_workspace(tmp_path):
     assert str(module.ROOT / 'pkgconfig').replace('\\', '/') in config['properties']['pkg_config_libdir']
     for key in ('c_args', 'cpp_args'):
         assert str(module.ROOT.parent / 'libdrm/include/luna_graphics_compat.h').replace('\\', '/') in config['built-in options'][key]
+        assert (module.QT_SDK_STAGING / 'include').as_posix() in config['built-in options'][key]
         assert 'D:/workspace/luna-workspace/os/' not in config['built-in options'][key]
     options = module.cross_builtin_options(path)
     assert any(value.startswith('-Dc_args=') for value in options)

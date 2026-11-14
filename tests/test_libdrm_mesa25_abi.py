@@ -3,6 +3,7 @@
 
 from pathlib import Path
 
+from test_libdrm_luna_discovery import discovery_binary, run_linux
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -29,16 +30,8 @@ def test_libdrm_is_locked_to_linux_baseline_version():
     assert "version : '2.4.125'" in meson
 
 
-def test_luna_platform_device_exposes_primary_and_render_nodes():
-    """kmsro 必须能从 KMS 主节点发现 Panfrost render 节点。"""
-    source = (ROOT / "libdrm/upstream/xf86drm.c").read_text(
-        encoding="utf-8"
-    )
-
-    assert "dev->nodes[DRM_NODE_PRIMARY]" in source
-    assert "dev->nodes[DRM_NODE_RENDER]" in source
-    assert "(1 << DRM_NODE_PRIMARY)" in source
-    assert "(1 << DRM_NODE_RENDER)" in source
-    assert "drm_public int drmGetDevices2" in source
-    assert '"/luna/drm/platform0"' in source
-    assert '"/luna/drm/%d"' not in source
+def test_luna_platform_render_nodes_remain_enumerable(discovery_binary):
+    """Discovery must verify actual nodes; kmsro must enumerate render devices."""
+    result = run_linux([discovery_binary, "kmsro_enumeration"])
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert result.stdout.strip() == "pass: kmsro_enumeration"

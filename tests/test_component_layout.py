@@ -6,12 +6,12 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
-COMPONENTS = ("libdrm", "mesa", "kmscube", "glmark2", "qt5")
-CATBOY_COMPONENTS = ("libdrm", "mesa", "kmscube", "glmark2")
+COMPONENTS = ("libdrm", "mesa", "kmscube", "glmark2", "qt5", "weston")
+CATBOY_COMPONENTS = ("libdrm", "mesa", "kmscube", "glmark2", "weston")
 ROOT_ENTRIES = {
     "README.md",
+    "RELEASE.md",
     ".gitignore",
-    "artifacts",
     "docs",
     "glmark2",
     "kmscube",
@@ -19,6 +19,7 @@ ROOT_ENTRIES = {
     "mesa",
     "platforms",
     "qt5",
+    "weston",
     "scripts",
     "tests",
 }
@@ -28,7 +29,7 @@ GENERATED_DIRECTORIES = {"build", "output", "dist", "stage", ".pytest_cache", "_
 def test_graphics_root_contains_only_catboy_projects_and_shared_assets():
     entries = {
         path.name for path in ROOT.iterdir()
-        if path.name not in {".git", ".pytest_cache", ".worktrees", "__pycache__"}
+        if path.name not in {".git", ".pytest_cache", ".worktrees", "__pycache__", "artifacts"}
     }
     assert entries == ROOT_ENTRIES
 
@@ -37,12 +38,14 @@ def test_intermediate_output_directories_are_ignored():
     ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
     for name in GENERATED_DIRECTORIES:
         assert name in ignore
-    assert "!artifacts/**" in ignore
+    assert "/artifacts/" in ignore
+    assert "!artifacts/**" not in ignore
 
 
 def test_artifact_manifest_is_generated_by_a_repository_script():
     assert (ROOT / "scripts/package_artifacts.py").is_file()
-    assert (ROOT / "artifacts/armv8a-user/manifest.json").is_file()
+    # Deployment outputs are generated externally, not source prerequisites.
+    assert not (ROOT / "artifacts/armv8a-user/manifest.json").exists()
 
 
 def test_every_graphics_component_is_a_standalone_catboy_project():

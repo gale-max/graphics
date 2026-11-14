@@ -10,7 +10,6 @@ compile_commands.json
 .qmake.stash
 **/.qmake.stash
 
-!artifacts/
-!artifacts/**
+/artifacts/
 /tests/.tmp/
 /*/build.local.yaml
