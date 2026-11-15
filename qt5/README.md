@@ -49,7 +49,7 @@ ln -sfn /mnt/d/workspace/luna-workspace/os/graphics/libdrm \
 # WSL：逐阶段交叉编译
 cd /home/surest/nanopc-workspace/graphics/qt5
 python3 scripts/qt5_build.py --stage configure
-for s in core gui-eglfs kms widgets smoke widgets-display; do
+for s in core gui-eglfs kms widgets; do
     python3 scripts/qt5_build.py --stage "$s" --jobs "$(nproc)"
 done
 
@@ -66,11 +66,28 @@ python qt5\scripts\package_runtime.py `
 
 ## 验收
 
+Luna 自有示例和构建/部署脚本位于 `os/luna-test/suites/graphics/qt5`。
+生产 `qt5_build.py` 只构建 SDK；`widgets` 是 Qt 库阶段，保留在生产入口。
+smoke/display 测试使用已经构建好的 cross qmake，输出必须位于源码和 Qt 构建树之外：
+
+```bash
+# 从正式 os 工作区执行；--qt-build-root 指向本次生产 Qt 构建目录
+python3 luna-test/suites/graphics/qt5/scripts/build_target_examples.py \
+    --stage smoke --qt-build-root /home/surest/nanopc-workspace/graphics/qt5/build/qt5-armv8a-linux \
+    --output-root /mnt/d/workspace/codex-workspace/qt-target-validation --jobs 4
+# 将 --stage 改为 widgets-display 构建对应测试
+```
+
+生产 SDK 打包默认无需 luna-test；只有显式传入
+`--test-assets-root <os>/luna-test/suites/graphics/qt5` 才包含三个 Luna 示例和
+`build_sdk_examples.py`。上游原生示例和 qwindow-compositor 保留原处。
+
+
 Windows SDK 的 Widgets 示例构建使用独立产物目录：
 
 ```powershell
 $make = (Get-Command mingw32-make).Source
-python graphics/qt5/scripts/build_window_examples.py `
+python luna-test/suites/graphics/qt5/scripts/build_window_examples.py `
     --sdk D:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19 `
     --make $make `
     --output-root D:/workspace/codex-workspace/qt-validation
@@ -79,6 +96,16 @@ python graphics/qt5/scripts/build_window_examples.py `
 `build/` 和 `output/manifest.json` 位于指定目录，禁止输出到 graphics 源码或
 共享 SDK 中。清单同时记录 SDK 的调用路径与解析后的真实路径，支持 Windows
 目录联接。示例编译不代表 QEMU 显示、输入、进程回收或 GPU 加速验收通过。
+
+部署入口也在测试仓库，产物路径与上述构建的 `--output-root` 对应：
+
+```powershell
+python luna-test/suites/graphics/qt5/scripts/deploy_window_examples.py `
+    --host 192.168.137.11 --sdk D:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19 `
+    --artifacts-root D:/workspace/codex-workspace/qt-validation
+```
+
+`--fonts-only --font-directory <dir>` 不要求 `--artifacts-root`，仍只部署字体。
 
 独立键鼠/定时器探针使用同一脚本构建，加 `--example input-smoke` 并指定新的
 输出目录。它只接收真实 QPA 输入：按 A、B，点击窗口，再按 Enter；成功输出

@@ -24,12 +24,12 @@ output/
 
 各工程的来源、生成材料、构建命令分别见 `mesa/README.md`、
 `libdrm/README.md`、`glmark2/README.md`、`weston/README.md` 和 `qt5/sdk.md`。
-Qt 示例使用同版本 Windows SDK 的 qmake 构建：
+Qt 示例使用同版本 Windows SDK 的 qmake 构建；以下命令从 os 根目录执行：
 
 ```powershell
-python qt5/scripts/build_window_examples.py --sdk D:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19 --make <mingw32-make.exe的绝对路径>
-python qt5/scripts/deploy_window_examples.py --sdk D:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19
-python qt5/scripts/deploy_window_examples.py --fonts-only --font-directory <TTF字体目录>
+python luna-test/suites/graphics/qt5/scripts/build_window_examples.py --sdk D:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19 --make <mingw32-make.exe的绝对路径> --output-root D:/workspace/codex-workspace/qt-validation
+python luna-test/suites/graphics/qt5/scripts/deploy_window_examples.py --sdk D:/workspace/luna-workspace/os/luna-sdk/qt5-5.15.19 --artifacts-root D:/workspace/codex-workspace/qt-validation
+python luna-test/suites/graphics/qt5/scripts/deploy_window_examples.py --fonts-only --font-directory <TTF字体目录>
 ```
 
 字体部署必须保留对应许可证；Source Code Pro 可验证数字及英文，不代表中文

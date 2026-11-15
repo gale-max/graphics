@@ -1,3 +1,11 @@
+> 当前入口约定：生产 `scripts/qt5_build.py` 仅保留 configure/core/gui-eglfs/kms/widgets。
+> Luna 自有 smoke、input-smoke、widgets-display 源码及测试脚本已移到
+> `os/luna-test/suites/graphics/qt5`。SDK 默认不依赖该目录；打包时显式提供
+> `--test-assets-root <os>/luna-test/suites/graphics/qt5` 才交付这些示例和
+> `scripts/build_sdk_examples.py`。已选入的 SDK 示例使用
+> `python <sdk>/scripts/build_sdk_examples.py --sdk <sdk> --output <external-output>`。
+> 下文历史 SDK 布局示意不作为当前生产源码路径；上游原生示例保持原处。
+
 # Luna Qt 5 Windows SDK 产品手册
 
 | 项目 | 值 |
@@ -412,8 +420,8 @@ python3 scripts/qt5_build.py --stage core            --jobs 4
 python3 scripts/qt5_build.py --stage gui-eglfs       --jobs 4
 python3 scripts/qt5_build.py --stage kms             --jobs 4
 python3 scripts/qt5_build.py --stage widgets         --jobs 4
-python3 scripts/qt5_build.py --stage smoke           --jobs 4
-python3 scripts/qt5_build.py --stage widgets-display --jobs 4
+python3 <os>/luna-test/suites/graphics/qt5/scripts/build_target_examples.py --stage smoke --qt-build-root <qt-build> --output-root <external-output> --jobs 4
+python3 <os>/luna-test/suites/graphics/qt5/scripts/build_target_examples.py --stage widgets-display --qt-build-root <qt-build> --output-root <external-output> --jobs 4
 ```
 
 | 阶段 | 作用 | make 目标 |
@@ -423,8 +431,8 @@ python3 scripts/qt5_build.py --stage widgets-display --jobs 4
 | `gui-eglfs` | QtGui | `sub-gui` |
 | `kms` | 平台支持与 EGLFS/KMS 插件 | `sub-platformsupport`、`sub-eglfs` |
 | `widgets` | QtWidgets | `sub-widgets` |
-| `smoke` | 交叉编译 `examples/eglfs-smoke` | — |
-| `widgets-display` | 交叉编译 `examples/widgets-display` | — |
+| `smoke`（测试入口） | 交叉编译 luna-test 中的 `examples/eglfs-smoke` | 显式 Qt build/output |
+| `widgets-display`（测试入口） | 交叉编译 luna-test 中的 `examples/widgets-display` | 显式 Qt build/output |
 
 `configure` 使用 `-platform linux-g++ -xplatform luna-armv8a`，关键开关
 `-opengl es2 -eglfs -kms`，关闭 `xcb`/`linuxfb`/`dbus`/`openssl`/`icu`/`pch`，
@@ -480,7 +488,7 @@ SDK 组合须满足：
 1. 通过 WSL `rsync -aL` 解引用目标树中的 `.so` 符号链接；
 2. 合并主机工具 (`bin/`) 与目标树 (`include/`、`lib/`、`plugins/`、`staging/`)；
 3. 将 mkspec 与 qmake 元数据中的 WSL / 短路径重写为 SDK 内相对布局；
-4. 复制 `mkspecs/luna-armv8a/`、`scripts/`、`examples/` 与 `README.md`。
+4. 复制生产 mkspecs、工具脚本、上游原生示例与 README；Luna 示例仅从显式 `--test-assets-root` 输入复制。
 
 验收：
 
@@ -535,14 +543,14 @@ Environment: MAKEFLAGS=-j4
 ### 7.1 构建示例应用
 
 Qt Creator 打开
-`D:\luna-sdk\qt5-5.15.19\examples\widgets-display\widgets-display.pro`，
+`D:\luna-sdk\qt5-5.15.19\examples\luna\widgets-display\widgets-display.pro`，
 选择 `Luna ARMv8A` Kit，运行 qmake 后构建。命令行等价：
 
 ```powershell
 New-Item -ItemType Directory -Force D:\luna-sdk\build\widgets-display
 Set-Location D:\luna-sdk\build\widgets-display
 D:\luna-sdk\qt5-5.15.19\bin\qmake.exe `
-    D:\luna-sdk\qt5-5.15.19\examples\widgets-display\widgets-display.pro
+    D:\luna-sdk\qt5-5.15.19\examples\luna\widgets-display\widgets-display.pro
 mingw32-make.exe -j4
 ```
 

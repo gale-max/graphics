@@ -24,7 +24,6 @@ TARGET_DIRECTORIES = (
 DELIVERY_SCRIPTS = (
     "build_windows_host_tools.py",
     "sdk_paths.py",
-    "build_sdk_examples.py",
     "package_windows_sdk.py",
     "persist_qtcreator_kit.py",
     "register_qtcreator_kit.ps1",
@@ -45,6 +44,7 @@ DELIVERY_EXAMPLE_TREES = (
 )
 DELIVERY_CUSTOM_EXAMPLES = (
     ("examples/eglfs-smoke", "luna/eglfs-smoke"),
+    ("examples/input-smoke", "luna/input-smoke"),
     ("examples/widgets-display", "luna/widgets-display"),
 )
 REQUIRED_PUBLIC_HEADERS = (
@@ -273,6 +273,34 @@ def generate_public_headers(sdk: Path, perl: Path) -> None:
     subprocess.run(syncqt_command(qtbase, perl, sdk), check=True)
 
 
+def validate_test_assets(test_assets_root: Path | None) -> Path | None:
+    """Validate an explicitly supplied test bundle before changing the SDK."""
+    if test_assets_root is None:
+        return None
+    root = test_assets_root.resolve()
+    required = [root / "sdk-recovery/scripts/build_sdk_examples.py"]
+    for source, _ in DELIVERY_CUSTOM_EXAMPLES:
+        project = root / source
+        required.extend((project / (project.name + ".pro"), project / "main.cpp"))
+    for path in required:
+        if not path.is_file():
+            raise FileNotFoundError(path)
+    return root
+
+
+def copy_test_assets(test_assets_root: Path | None, sdk: Path) -> None:
+    """Include Luna examples only when the caller selects their test bundle."""
+    root = validate_test_assets(test_assets_root)
+    if root is None:
+        return
+    for source, destination in DELIVERY_CUSTOM_EXAMPLES:
+        copy_directory(root / source, sdk / "examples" / destination)
+    scripts = sdk / "scripts"
+    scripts.mkdir(parents=True, exist_ok=True)
+    copy_file(root / "sdk-recovery/scripts/build_sdk_examples.py",
+              scripts / "build_sdk_examples.py")
+
+
 def package(
     sdk: Path,
     target: Path,
@@ -281,8 +309,10 @@ def package(
     toolchain: Path,
     sysroot: Path,
     perl: Path,
+    test_assets_root: Path | None = None,
 ) -> None:
     """生成可由 Windows Qt Creator 使用的 Luna Qt SDK。"""
+    test_assets_root = validate_test_assets(test_assets_root)
     sdk.mkdir(parents=True, exist_ok=True)
     (sdk / "config-temp").mkdir(exist_ok=True)
     copy_directory(require_host_mkspecs(host_mkspecs), sdk / "mkspecs")
@@ -337,8 +367,7 @@ def package(
         destination_path = sdk / "examples" / destination
         copy_directory(source_path, destination_path)
         verify_example_tree(source_path, destination_path)
-    for source, destination in DELIVERY_CUSTOM_EXAMPLES:
-        copy_directory(ROOT / source, sdk / "examples" / destination)
+    copy_test_assets(test_assets_root, sdk)
     verify_public_headers(sdk)
     verify_target_libraries(sdk)
     verify_qmake(sdk)
@@ -347,6 +376,10 @@ def package(
 def main() -> None:
     workspace = ROOT.parents[2]
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--test-assets-root", type=Path,
+        help="optional luna-test/suites/graphics/qt5 bundle; omitted SDKs need no test repository",
+    )
     parser.add_argument("--sdk", type=Path, default=Path(os.environ.get("LUNA_GRAPHICS_SDK", str(ROOT.parent.parent / "luna-sdk/qt5-5.15.19/staging"))).parent)
     parser.add_argument(
         "--target", type=Path,
@@ -381,7 +414,7 @@ def main() -> None:
     args = parser.parse_args()
     package(
         args.sdk, args.target, args.host_tools, args.host_mkspecs,
-        args.toolchain, args.sysroot, args.perl,
+        args.toolchain, args.sysroot, args.perl, test_assets_root=args.test_assets_root,
     )
 
 

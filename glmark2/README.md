@@ -23,6 +23,14 @@ D:\workspace\luna-workspace\catboy\catboy.exe build glmark2-drm -f build.yaml -p
 
 ## 部署和运行
 
+Luna 自有部署脚本集中在测试仓库。从 os 根目录显式指定同批产物：
+
+```powershell
+python luna-test/suites/graphics/glmark2/scripts/deploy_ftp.py `
+    --host 192.168.137.11 --elf <glmark2-drm.elf> --data graphics/glmark2/upstream/data
+```
+
+
 将 ELF、同一构建批次的 Mesa 动态库和 upstream 的完整 `data` 目录部署到
 `/media/mmcblk0p1/graphics`。不得混用不同构建批次的 `libEGL`、`libgbm`、
 `dri_gbm.so` 和 `libgallium`，否则 Mesa 内部结构 ABI 不一致会在
@@ -56,8 +64,10 @@ setenv GBM_BACKEND dri
 
 ## 构建契约检查
 
+从 os 根目录执行中央 host runner：
+
 ```powershell
-python -m unittest discover -s tests -p "test_*.py" -v
+python luna-test/run_host.py --repo graphics/glmark2 --source-repo graphics
 ```
 
 检查项覆盖平台源隔离、内置图片库、GBM/GLES2 源组合和 SD 卡数据路径。

@@ -64,10 +64,7 @@ MESA_EXPAT_LIB = (
 LIBDRM_INCLUDE = LIBDRM / "upstream"
 LIBDRM_UAPI_INCLUDE = LIBDRM_INCLUDE / "include" / "drm"
 LIBDRM_LIB = LIBDRM / "build" / "libdrm" / "armv8a-user"
-SMOKE_SOURCE = ROOT / "examples" / "eglfs-smoke"
-SMOKE_BUILD = BUILD / "examples" / "eglfs-smoke"
-WIDGETS_SOURCE = ROOT / "examples" / "widgets-display"
-WIDGETS_BUILD = BUILD / "examples" / "widgets-display"
+
 
 
 def slash(path: Path) -> str:
@@ -380,52 +377,19 @@ def build(stage: str, jobs: int) -> None:
         )
 
 
-def build_smoke(jobs: int) -> None:
-    qmake = BUILD / "bin" / ("qmake.exe" if IS_WINDOWS else "qmake")
-    require_file(qmake, "cross qmake")
-    require_file(SMOKE_SOURCE / "eglfs-smoke.pro", "EGLFS smoke project")
-    make = os.environ.get("QT_MAKE") or shutil.which("make")
-    if not make:
-        raise SystemExit("Qt build requires make.exe; set QT_MAKE to its path")
-    if SMOKE_BUILD.is_dir():
-        shutil.rmtree(SMOKE_BUILD)
-    SMOKE_BUILD.mkdir(parents=True)
-    run([str(qmake), slash(SMOKE_SOURCE / "eglfs-smoke.pro")], SMOKE_BUILD)
-    run([make, f"-j{jobs}"], SMOKE_BUILD)
-
-
-def build_widgets_display(jobs: int) -> None:
-    qmake = BUILD / "bin" / "qmake"
-    require_file(qmake, "cross qmake")
-    require_file(WIDGETS_SOURCE / "widgets-display.pro", "Qt Widgets display project")
-    make = os.environ.get("QT_MAKE") or shutil.which("make")
-    if not make:
-        raise SystemExit("Qt build requires make; set QT_MAKE to its path")
-    if WIDGETS_BUILD.is_dir():
-        shutil.rmtree(WIDGETS_BUILD)
-    WIDGETS_BUILD.mkdir(parents=True)
-    run([str(qmake), slash(WIDGETS_SOURCE / "widgets-display.pro")], WIDGETS_BUILD)
-    run([make, f"-j{jobs}"], WIDGETS_BUILD)
-
-
 def main() -> None:
     if IS_WINDOWS:
         raise SystemExit("Qt 统一在 Linux 构建，请按 README 将源码同步到 nanopc-workspace")
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--stage",
-        choices=("configure", "core", "gui-eglfs", "kms", "widgets", "smoke",
-                 "widgets-display"),
+        choices=("configure", "core", "gui-eglfs", "kms", "widgets"),
         required=True,
     )
     parser.add_argument("--jobs", type=int, default=max(1, os.cpu_count() or 1))
     args = parser.parse_args()
     if args.stage == "configure":
         configure()
-    elif args.stage == "smoke":
-        build_smoke(args.jobs)
-    elif args.stage == "widgets-display":
-        build_widgets_display(args.jobs)
     else:
         build(args.stage, args.jobs)
 
