@@ -53,6 +53,30 @@ std::string get_drm_device_option()
     return drm_device;
 }
 
+drmModeModeInfo *select_preferred_mode(drmModeConnectorPtr connector)
+{
+    drmModeModeInfo *preferred_mode = nullptr;
+    drmModeModeInfo *largest_mode = nullptr;
+    uint64_t largest_area = 0;
+
+    if (!connector || !connector->modes || connector->count_modes <= 0)
+        return nullptr;
+
+    for (int mode_index = 0; mode_index < connector->count_modes; mode_index++) {
+        drmModeModeInfo *mode = &connector->modes[mode_index];
+        uint64_t area = (uint64_t)mode->hdisplay * mode->vdisplay;
+
+        if (!preferred_mode && (mode->type & DRM_MODE_TYPE_PREFERRED))
+            preferred_mode = mode;
+        if (area > largest_area) {
+            largest_mode = mode;
+            largest_area = area;
+        }
+    }
+
+    return preferred_mode ? preferred_mode : largest_mode;
+}
+
 }
 
 NativeStateDRM::NativeStateDRM() :
@@ -272,6 +296,10 @@ NativeStateDRM::fb_get_from_bo(gbm_bo* bo)
     strides[0] = gbm_bo_get_stride(bo);
 #endif
 
+    Log::debug("drm fb: width=%u height=%u format=0x%08x pitch=%u modifier=0x%016llx\n",
+               width, height, format, strides[0],
+               (unsigned long long)gbm_bo_get_modifier(bo));
+
     status = drmModeAddFB2(fd_, width, height, format, handles,
                            strides, offsets, &fb_id, 0);
     if (status < 0) {
@@ -349,16 +377,8 @@ NativeStateDRM::init()
         return false;
     }
 
-    // Find the best resolution (we will always operate full-screen).
-    unsigned int bestArea(0);
-    for (int m = 0; m < connector_->count_modes; m++) {
-        drmModeModeInfo* curMode = &connector_->modes[m];
-        unsigned int curArea = curMode->hdisplay * curMode->vdisplay;
-        if (curArea > bestArea) {
-            mode_ = curMode;
-            bestArea = curArea;
-        }
-    }
+    // Honor the connector's preferred timing, with the largest mode as fallback.
+    mode_ = select_preferred_mode(connector_);
 
     if (!mode_) {
         Log::error("Failed to find a suitable mode\n");
