@@ -25,13 +25,17 @@ Luna 采用统一的双模式系统架构设计：
 
 ## 目录结构
 
-- `lvgl/`: LVGL 8.3 核心引擎与内置组件
-- `drivers/`: Framebuffer 驱动与 DRM 硬件接口
-- `demo/`: 工业仪表盘与设备控制 UI 演示样例
+- `mesa/`: Mesa 图形渲染驱动适配
+- `libdrm/`: DRM 用户态显示控制接口库
+- `kmscube/`: DRM/KMS 3D 旋转立方体渲染测试目标
+- `glmark2/`: OpenGL ES 基准性能测试套件
 
 ## 快速使用
 
 ```bash
-# 构建图形演示应用
-make TARGET=graphics_demo
+# 独立构建 KMS/DRM 显示测试组件
+catboy build kmscube
+
+# 独立构建 OpenGL ES 渲染测试组件
+catboy build glmark2
 ```
