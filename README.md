@@ -31,5 +31,7 @@ Luna 采用统一的双模式系统架构设计：
 
 ## 快速使用
 
+```bash
 # 构建图形演示应用
 make TARGET=graphics_demo
+```
